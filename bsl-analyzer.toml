@@ -1,0 +1,5 @@
+[source]
+root = "src/cf"
+extensions = [
+  { name = "rms", path = "src/cfe/rms" }
+]
