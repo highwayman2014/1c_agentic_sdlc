@@ -1,3 +1,3 @@
 interface:
-  display_name: "Задачи 1С: SDLC и worktree"
-  short_description: "Ведение задач 1С с изоляцией через Git worktree"
+  display_name: "Задачи 1С: SDLC, ветки и worktree"
+  short_description: "Ведение задач 1С в обычной ветке или Git worktree"
