@@ -59,6 +59,7 @@ description: Ведение задач 1С от Jira до доставки. Ис
 При подготовке, восстановлении или завершении worktree прочитай [worktree.md](references/worktree.md).
 Перед анализом задачи прочитай [tools.md](references/tools.md).
 При настройке MCP прочитай [mcp.md](references/mcp.md).
+До запуска workspace-анализатора проверь повторное использование индекса по [search-index.md](references/search-index.md).
 
 ## Подготовь документы
 
