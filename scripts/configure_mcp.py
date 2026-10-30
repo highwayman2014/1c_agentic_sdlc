@@ -80,6 +80,8 @@ def build_profiles(project, workspace, source, runtime, repository=REPOSITORY,
                              {"BSL_MCP_IDLE_TTL_SECS": "43200", "BSL_MCP_DAEMON_LOG": "1", "BSL_LOG": "info"})
     local["llm-wiki-project"] = server(runtime["node"], [runtime["wiki_entrypoint"]], workspace,
                                        {"WIKI_ROOT": str(source)})
+    if project.get("live_server"):
+        local[project["live_server"]] = server(sys.executable, [runner, "bsl-live"], workspace)
     if is_worktree:
         local["rlm-tools-bsl"] = {"url": "http://127.0.0.1:9000/mcp", "enabled": False}
     return shared, local
@@ -199,6 +201,10 @@ def pi_native(shared, local):
         entries[name] = {key: value for key, value in entry.items()
                          if key in {"command", "args", "env", "url", "cwd", "enabled"}}
         entries[name].update(timeout=120, exposure="codemode")
+        if "bsl-live" in entry.get("args", []):
+            entries[name]["description"] = "Live dev 1C HTTP tools only. Always set connection=smm-auto-avasilyev. No project code index."
+            entries[name]["toolExposure"] = {tool: "codemode" for tool in ["metadata", "query", "execute", "event_log"]}
+            entries[name]["toolExposure"]["*"] = "hidden"
         if name == "openviking":
             entries[name]["description"] = "Confluence search only: viking://resources/confluence-1c/. Import only explicitly selected pages."
             entries[name]["toolExposure"] = {tool: "codemode" for tool in

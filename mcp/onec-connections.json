@@ -1,0 +1,10 @@
+{
+  "connections": {
+    "smm-auto-avasilyev": {
+      "url": "http://n01-1csql-stage:81/smm_auto_avasilyev/hs/bsl-analyzer",
+      "user_env": "BSL_SMM_DEV_USER",
+      "password_env": "BSL_SMM_DEV_PASSWORD",
+      "allow_execute": false
+    }
+  }
+}

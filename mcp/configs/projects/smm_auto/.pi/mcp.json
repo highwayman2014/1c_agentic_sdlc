@@ -90,6 +90,24 @@
       },
       "timeout": 120,
       "exposure": "codemode"
+    },
+    "bsl-smm-live": {
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "bsl-live"
+      ],
+      "cwd": "D:\\repository\\1c\\smm_auto",
+      "timeout": 120,
+      "exposure": "codemode",
+      "description": "Live dev 1C HTTP tools only. Always set connection=smm-auto-avasilyev. No project code index.",
+      "toolExposure": {
+        "metadata": "codemode",
+        "query": "codemode",
+        "execute": "codemode",
+        "event_log": "codemode",
+        "*": "hidden"
+      }
     }
   }
 }

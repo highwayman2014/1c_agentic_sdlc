@@ -72,6 +72,14 @@
       "env": {
         "WIKI_ROOT": "D:\\repository\\1c\\smm_auto"
       }
+    },
+    "bsl-smm-live": {
+      "type": "stdio",
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "bsl-live"
+      ]
     }
   }
 }

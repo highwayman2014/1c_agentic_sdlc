@@ -91,6 +91,24 @@
       "timeout": 120,
       "exposure": "codemode"
     },
+    "bsl-smm-live": {
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "bsl-live"
+      ],
+      "cwd": "D:\\repository\\1c\\worktrees\\smm_auto\\dev1c-33021-spisanie-tmc",
+      "timeout": 120,
+      "exposure": "codemode",
+      "description": "Live dev 1C HTTP tools only. Always set connection=smm-auto-avasilyev. No project code index.",
+      "toolExposure": {
+        "metadata": "codemode",
+        "query": "codemode",
+        "execute": "codemode",
+        "event_log": "codemode",
+        "*": "hidden"
+      }
+    },
     "rlm-tools-bsl": {
       "url": "http://127.0.0.1:9000/mcp",
       "enabled": false,

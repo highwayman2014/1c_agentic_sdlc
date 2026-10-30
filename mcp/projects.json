@@ -20,7 +20,8 @@
         ],
         "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\smm-auto"
       }
-    ]
+    ],
+    "live_server": "bsl-smm-live"
   },
   "carsh_auto": {
     "source": "D:\\repository\\1c\\carsh_auto",

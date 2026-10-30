@@ -12,5 +12,9 @@
   "embedding_file": "C:\\Users\\shepa\\.bsl-analyzer\\embeddings.env",
   "atlassian_file": "C:\\Users\\shepa\\.config\\1c-agentic-sdlc\\atlassian.env",
   "platform_help": "C:\\Users\\shepa\\.bsl-analyzer\\platform-help\\8.3.27.1936",
-  "openviking_url": "http://127.0.0.1:1933/mcp"
+  "openviking_url": "http://127.0.0.1:1933/mcp",
+  "onec_connections": "D:\\repository\\1c_agentic_sdlc\\mcp\\onec-connections.json",
+  "onec_credential_sources": "D:\\repository\\1c_agentic_sdlc\\mcp\\onec-credential-sources.json",
+  "live_source": "C:\\Users\\shepa\\.config\\1c-agentic-sdlc\\runtime\\smm-auto-live",
+  "live_cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\live\\smm-auto-avasilyev"
 }

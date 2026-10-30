@@ -19,3 +19,10 @@
 
 [mcp_servers."llm-wiki-project"."env"]
 "WIKI_ROOT" = "D:\\repository\\1c\\smm_auto"
+
+[mcp_servers."bsl-smm-live"]
+"command" = "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+"args" = ["D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py", "bsl-live"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+"cwd" = "D:\\repository\\1c\\smm_auto"

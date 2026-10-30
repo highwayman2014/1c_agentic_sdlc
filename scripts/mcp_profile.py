@@ -43,6 +43,11 @@ def read_env(path):
 
 def command_for(kind, arguments, runtime, inherited=None, lexical_only=False):
     env = dict(os.environ if inherited is None else inherited)
+    if kind == "bsl-live":
+        if arguments:
+            raise ValueError("Live-only MCP uses fixed source and connection settings; extra arguments are not accepted")
+        from onec_runtime import configure
+        return configure(runtime, env)
     if kind == "bsl":
         enforce_baseline_launch_policy(arguments)
         env.update(runtime["embedding_defaults"])
@@ -154,7 +159,7 @@ def run_windows_broker(command, env):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=["bsl", "atlassian"])
+    parser.add_argument("kind", choices=["bsl", "bsl-live", "atlassian"])
     parser.add_argument("--lexical-only", action="store_true")
     argv = sys.argv[1:]
     separator = argv.index("--") if "--" in argv else len(argv)

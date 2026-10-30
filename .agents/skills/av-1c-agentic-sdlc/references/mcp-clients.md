@@ -14,6 +14,8 @@
 Pi и Claude Code получают полный набор: справка платформы, OpenViking, Atlassian,
 обе wiki и анализатор. В ЗУП подключаются три анализатора.
 В worktree pi также отключает глобальный RLM через `enabled=false`.
+В СММ добавлен `bsl-smm-live` для HTTP-инструментов dev-базы.
+Он работает при остановленном индексе проекта; правила описаны в [live-1c.md](live-1c.md).
 В Codex общие сервисы наследуются из пользовательских настроек.
 
 - СММ: [pi](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/smm_auto/.pi/mcp.json), [Claude Code](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/smm_auto/.mcp.json).

@@ -7,6 +7,7 @@
 
 - Общие профили и проверка путей: [mcp-setup.md](mcp-setup.md).
 - Нативный pi и Claude Code: [mcp-clients.md](mcp-clients.md).
+- HTTP-расширение и live-инструменты 1С: [live-1c.md](live-1c.md).
 
 Для проверки используй `scripts/configure_mcp.py --workspace <путь> --check`.
 Для применения выбери `--client codex`, `--client pi` или `--client claude`.
