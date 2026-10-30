@@ -1,0 +1,51 @@
+{
+  "v8path": "C:/Program Files/1cv8/8.3.27.1936/bin/1cv8.exe",
+  "databases": [
+    {
+      "id": "build",
+      "name": "Сборка",
+      "type": "file",
+      "path": ".\\build\\ib"
+    },
+    {
+      "id": "dev",
+      "repository": {
+        "path": "http://n01-1csql-stage/repo/repo.1ccr/smm_auto"
+      },
+      "name": "Разработка",
+      "type": "server",
+      "server": "n01-1csql-stage",
+      "ref": "smm_auto_avasilyev",
+      "extensions": [
+        {
+          "name": "RMS_Карсервис",
+          "src": "src\\cfe\\rms",
+          "repository": {
+            "path": "http://n01-1csql-stage/repo/repo.1ccr/smm_auto_exp_rms"
+          }
+        },
+        {
+          "name": "ДополнительныеОтчетыИОбработки",
+          "src": "src\\cfe\\doo",
+          "repository": {
+            "path": "http://n01-1csql-stage/repo/repo.1ccr/smm_auto_exp_doo"
+          }
+        },
+        {
+          "name": "МониторингОчередейОбмена",
+          "src": "src\\cfe\\МониторингОчередейОбмена",
+          "repository": {
+            "path": "http://n01-1csql-stage/repo/repo.1ccr/eqm"
+          }
+        },
+        {
+          "name": "дм_МониторингРаботоспособности",
+          "src": "src\\cfe\\дм_МониторингРаботоспособности",
+          "repository": {
+            "path": "http://n01-1csql-stage/repo/repo.1ccr/alarm_monitor"
+          }
+        }
+      ]
+    }
+  ]
+}

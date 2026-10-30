@@ -18,6 +18,7 @@ RLM, Jenkins, Vanessa и подключения к ИБ добавляй по у
 
 - [Общие профили Codex](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/shared/config.toml).
 - [Проект СММ](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/smm_auto/.codex/config.toml) и его [полный JSON MCP](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/smm_auto/.mcp.json).
+- [Реестр баз СММ без учётных данных](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/smm_auto/.v8-project.json).
 - [Проект КШР](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/carsh_auto/.codex/config.toml).
 - [Проект ЗУП: три конфигурации](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/zup/.codex/config.toml).
 - [Проект БП: CF и все расширения](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/bp/.codex/config.toml).
