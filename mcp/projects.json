@@ -3,7 +3,7 @@
     "source": "D:\\repository\\1c\\smm_auto",
     "analyzers": [
       {
-        "name": "bsl-smm-auto",
+        "name": "bsl-smm",
         "args": [
           "mcp",
           "serve",
@@ -18,7 +18,8 @@
           "--cache-dir",
           "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\smm-auto"
         ],
-        "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\smm-auto"
+        "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\smm-auto",
+        "worktree_name": "bsl-smm"
       }
     ],
     "live_server": "bsl-smm-live"

@@ -45,6 +45,10 @@ def server(command, args, cwd=None, env=None):
     return value
 
 
+def worktree_server_name(analyzer, workspace):
+    return analyzer.get("worktree_name", analyzer["name"] + "-" + workspace.name)
+
+
 def build_profiles(project, workspace, source, runtime, repository=REPOSITORY,
                    personal_root=None, existing_entries=None):
     workspace, source = Path(workspace), Path(source)
@@ -68,9 +72,11 @@ def build_profiles(project, workspace, source, runtime, repository=REPOSITORY,
         else:
             cache = Path(analyzer["cache"])
         args[args.index("--cache-dir") + 1] = str(cache)
-        name = analyzer["name"] + ("-" + workspace.name if is_worktree else "")
+        name = worktree_server_name(analyzer, workspace) if is_worktree else analyzer["name"]
         if existing_entries and len(project["analyzers"]) == 1 and len(existing_entries) == 1:
-            name, previous = next(iter(existing_entries.items()))
+            previous_name, previous = next(iter(existing_entries.items()))
+            if not analyzer.get("worktree_name"):
+                name = previous_name
             previous_args = previous.get("args", [])
             if "--cache-dir" in previous_args:
                 previous_cache = Path(previous_args[previous_args.index("--cache-dir") + 1])
@@ -325,8 +331,9 @@ def main():
     else:
         project = registry["smm_auto"]
         source = workspace = Path(project["source"])
+    previous_analyzers = existing_analyzers(workspace)
     shared, local = build_profiles(project, workspace, source, runtime, args.repository,
-                                    existing_entries=existing_analyzers(workspace))
+                                    existing_entries=previous_analyzers)
     if args.output:
         args.output.mkdir(parents=True, exist_ok=True)
         (args.output / ".codex").mkdir(exist_ok=True)
@@ -368,6 +375,11 @@ def main():
         write_backup(path, merge_servers(old, shared))
         print("Applied shared MCP profiles; credentials remain outside Git.")
     origin_names = {entry["name"] for entry in project["analyzers"]}
+    if (len(project["analyzers"]) == 1 and len(previous_analyzers) == 1
+            and project["analyzers"][0].get("worktree_name")):
+        # Only an unambiguous analyzer already bound to this exact source directory
+        # can be retired when the project's explicit naming convention changes.
+        origin_names.update(previous_analyzers)
     pending = {}
     if args.apply and args.client in {"codex", "claude", "all"}:
         path = workspace / ".mcp.json"

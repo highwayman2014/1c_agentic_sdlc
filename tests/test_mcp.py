@@ -54,6 +54,26 @@ class McpTests(unittest.TestCase):
         _, local = self.profiles(existing_entries=old)
         self.assertNotEqual(local["bsl-existing"]["args"][-1], self.project["analyzers"][0]["cache"])
 
+    def test_fixed_worktree_name_preserves_existing_cache_and_main_name(self):
+        self.project["analyzers"][0]["worktree_name"] = "bsl-smm"
+        workspace = self.root / "DEV1C-33021-spisanie-tmc"
+        previous = {"bsl-smm_auto-dev1c-33021-spisanie-tmc": {
+            "args": ["--cache-dir", str(self.root / "paid-cache")]}}
+        _, local = self.profiles(workspace, existing_entries=previous)
+        self.assertNotIn(next(iter(previous)), local)
+        renamed = local["bsl-smm"]
+        self.assertIn(str(self.root / "paid-cache"), renamed["args"])
+        self.assertEqual(renamed["args"][renamed["args"].index("--source-dir") + 1], str(workspace))
+        _, main = self.profiles(self.source)
+        self.assertIn("bsl-test", main)
+
+    def test_fixed_name_is_the_same_in_different_worktrees(self):
+        self.project["analyzers"][0]["worktree_name"] = "bsl-smm"
+        _, local = self.profiles(self.root / "my_task")
+        self.assertIn("bsl-smm", local)
+        _, other = self.profiles(self.root / "DEV1C-44000-other-task")
+        self.assertIn("bsl-smm", other)
+
     def test_toml_merge_preserves_unrelated_settings_and_multiline_text(self):
         text = '''model = "unchanged"
 [mcp_servers.other]

@@ -1,11 +1,11 @@
-[mcp_servers."bsl-smm_auto-dev1c-33021-spisanie-tmc"]
+[mcp_servers."bsl-smm"]
 "command" = "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
 "args" = ["D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py", "bsl", "--", "mcp", "serve", "--profile", "workspace", "--mode", "broker", "--source-dir", "D:\\repository\\1c\\worktrees\\smm_auto\\dev1c-33021-spisanie-tmc", "--enable-tool", "references", "--cache-dir", "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\worktrees\\smm_auto-dev1c-33021-spisanie-tmc"]
 "startup_timeout_sec" = 120
 "tool_timeout_sec" = 120
 "cwd" = "D:\\repository\\1c\\worktrees\\smm_auto\\dev1c-33021-spisanie-tmc"
 
-[mcp_servers."bsl-smm_auto-dev1c-33021-spisanie-tmc"."env"]
+[mcp_servers."bsl-smm"."env"]
 "BSL_MCP_IDLE_TTL_SECS" = "43200"
 "BSL_MCP_DAEMON_LOG" = "1"
 "BSL_LOG" = "info"

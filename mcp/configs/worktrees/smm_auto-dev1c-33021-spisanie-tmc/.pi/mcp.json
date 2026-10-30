@@ -51,7 +51,7 @@
       "timeout": 120,
       "exposure": "codemode"
     },
-    "bsl-smm_auto-dev1c-33021-spisanie-tmc": {
+    "bsl-smm": {
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
       "args": [
         "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",

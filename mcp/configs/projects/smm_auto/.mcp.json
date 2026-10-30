@@ -37,7 +37,7 @@
       ],
       "env": {}
     },
-    "bsl-smm-auto": {
+    "bsl-smm": {
       "type": "stdio",
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
       "args": [

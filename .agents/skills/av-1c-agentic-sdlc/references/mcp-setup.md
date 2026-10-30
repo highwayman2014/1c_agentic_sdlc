@@ -24,6 +24,13 @@ RLM, Jenkins, Vanessa и подключения к ИБ добавляй по у
 - [Проект БП: CF и все расширения](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/bp/.codex/config.toml).
 - [Worktree DEV1C-33021](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.codex/config.toml) и его [полный JSON MCP](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.mcp.json).
 
+В основной папке СММ и каждом её worktree MCP-анализатор называется `bsl-smm`.
+Имя задаётся полями `name` и `worktree_name` в `mcp/projects.json`.
+Номер задачи и полное имя папки в имя сервера не добавляются.
+Источник и кеш выбираются отдельно для текущей рабочей папки.
+Переименование существующего сервера сохраняет его прежний кеш.
+HTTP-инструменты используют отдельное имя `bsl-smm-live`.
+
 Файлы содержат действующие пути и состав исходников.
 Codex использует глобальный `~/.codex/config.toml` и локальный `.codex/config.toml` доверенного проекта.
 Общий файл содержит только таблицы MCP. Не заменяй им весь пользовательский config.toml.
@@ -114,7 +121,7 @@ python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\
 
 | Проект | Workspace в `.mcp.json` | Нативный Codex до этой настройки |
 |---|---|---|
-| СММ | `bsl-smm-auto`, CF и 10 расширений через project TOML | Workspace-профиль отсутствует |
+| СММ | `bsl-smm`, CF и 10 расширений через project TOML | Workspace-профиль отсутствует |
 | КШР | `bsl-carsh-auto`, CF и 5 расширений | Есть другой BSL Language Server; профиля bsl-analyzer нет |
 | ЗУП | `bsl-zup-dm`, `bsl-zup-smm`, `bsl-zup-carsh` | Эти три профиля отсутствуют |
 | БП | `bsl-bp`, CF и 29 расширений | Девять отдельных профилей по организациям |
