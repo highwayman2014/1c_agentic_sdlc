@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "bsl-reference": {
+      "type": "stdio",
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
       "args": [
         "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
@@ -14,9 +15,11 @@
       "env": {}
     },
     "openviking": {
+      "type": "http",
       "url": "http://127.0.0.1:1933/mcp"
     },
     "llm-wiki-personal": {
+      "type": "stdio",
       "command": "C:\\Program Files\\nodejs\\node.exe",
       "args": [
         "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
@@ -26,6 +29,7 @@
       }
     },
     "atlassian-mcp-server": {
+      "type": "stdio",
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
       "args": [
         "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
@@ -34,6 +38,7 @@
       "env": {}
     },
     "bsl-bp": {
+      "type": "stdio",
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
       "args": [
         "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
@@ -113,7 +118,6 @@
         "--cache-dir",
         "D:\\bsl-analyzer-cache\\bp"
       ],
-      "cwd": "D:\\repository\\1c\\bp",
       "env": {
         "BSL_MCP_IDLE_TTL_SECS": "43200",
         "BSL_MCP_DAEMON_LOG": "1",
@@ -121,11 +125,11 @@
       }
     },
     "llm-wiki-project": {
+      "type": "stdio",
       "command": "C:\\Program Files\\nodejs\\node.exe",
       "args": [
         "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
       ],
-      "cwd": "D:\\repository\\1c\\bp",
       "env": {
         "WIKI_ROOT": "D:\\repository\\1c\\bp"
       }

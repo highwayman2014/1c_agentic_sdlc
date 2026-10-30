@@ -186,8 +186,44 @@ def standalone(shared, local):
     for name, entry in {**shared, **local}.items():
         if entry.get("enabled") is False:
             continue
-        entries[name] = {key: value for key, value in entry.items() if key in {"command", "args", "env", "url", "cwd"}}
+        # Claude Code requires the HTTP type. Its stdio schema does not expose cwd;
+        # all source paths and entrypoints in these profiles are absolute.
+        entries[name] = {"type": "http" if "url" in entry else "stdio",
+                         **{key: value for key, value in entry.items() if key in {"command", "args", "env", "url"}}}
     return {"mcpServers": entries}
+
+
+def pi_adapter(shared, local):
+    entries = {}
+    for name, entry in {**shared, **local}.items():
+        if entry.get("enabled") is False:
+            continue
+        entries[name] = {key: value for key, value in entry.items()
+                         if key in {"command", "args", "env", "url", "cwd"}}
+        entries[name].update(lifecycle="lazy-keep-alive", requestTimeoutMs=120000)
+    return {"mcpServers": entries}
+
+
+def merge_json_servers(text, entries, origin_names=()):
+    data = json.loads(text) if text else {}
+    servers = data.setdefault("mcpServers", {})
+    for name, entry in list(servers.items()):
+        if name.startswith("bsl-") and name != "bsl-reference" and "workspace" in entry.get("args", []) and name not in entries:
+            if name not in origin_names:
+                raise ValueError("Review unexpected JSON analyzer profile: " + name)
+            del servers[name]
+    for name, entry in entries.items():
+        merged = {**servers.get(name, {}), **entry}
+        obsolete = ("command", "args", "cwd", "env") if "url" in entry else ("url", "headers", "oauth", "auth")
+        for key in obsolete:
+            merged.pop(key, None)
+        # Adapter files infer transport and use their own timeout units.
+        if "type" not in entry:
+            merged.pop("type", None)
+        if "cwd" not in entry:
+            merged.pop("cwd", None)
+        servers[name] = merged
+    return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
 
 def existing_analyzers(workspace):
@@ -242,6 +278,8 @@ def main():
     parser.add_argument("--source", type=Path)
     parser.add_argument("--repository", type=Path, default=REPOSITORY)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--client", choices=["codex", "claude", "pi", "all"], default="codex",
+                        help="Client to apply; --output always renders files for all three clients")
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--apply-shared", action="store_true")
     parser.add_argument("--check", action="store_true")
@@ -250,6 +288,8 @@ def main():
     registry = json.loads((REPOSITORY / "mcp/projects.json").read_text(encoding="utf-8"))
     if args.apply and not args.workspace:
         parser.error("--apply requires --workspace")
+    if args.apply_shared and args.client not in {"codex", "all"}:
+        parser.error("--apply-shared manages Codex only; pi/Claude project files include all shared servers")
     if args.workspace:
         workspace = args.workspace.resolve()
         discovered = discover_source(workspace)
@@ -275,6 +315,8 @@ def main():
         (args.output / ".codex").mkdir(exist_ok=True)
         (args.output / ".codex/config.toml").write_text(dump_servers(local), encoding="utf-8")
         (args.output / ".mcp.json").write_text(json.dumps(standalone(shared, local), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        (args.output / ".pi").mkdir(exist_ok=True)
+        (args.output / ".pi/mcp-adapter.json").write_text(json.dumps(pi_adapter(shared, local), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print("Rendered ready files:", args.output)
     if args.check or args.apply:
         for path in [runtime["launcher"], runtime["node"], runtime["wiki_entrypoint"], str(args.repository / "scripts/mcp_profile.py")]:
@@ -308,7 +350,17 @@ def main():
         import_atlassian_auth(old, runtime)
         write_backup(path, merge_servers(old, shared))
         print("Applied shared MCP profiles; credentials remain outside Git.")
-    if args.apply:
+    origin_names = {entry["name"] for entry in project["analyzers"]}
+    pending = {}
+    if args.apply and args.client in {"codex", "claude", "all"}:
+        path = workspace / ".mcp.json"
+        text = path.read_text(encoding="utf-8-sig") if path.exists() else ""
+        pending[path] = merge_json_servers(text, standalone(shared, local)["mcpServers"], origin_names)
+    if args.apply and args.client in {"pi", "all"}:
+        path = workspace / ".pi/mcp-adapter.json"
+        text = path.read_text(encoding="utf-8-sig") if path.exists() else ""
+        pending[path] = merge_json_servers(text, pi_adapter(shared, local)["mcpServers"], origin_names)
+    if args.apply and args.client in {"codex", "all"}:
         global_path = Path.home() / ".codex/config.toml"
         global_servers = tomllib.loads(global_path.read_text(encoding="utf-8-sig")).get("mcp_servers", {})
         if not set(shared).issubset(global_servers):
@@ -317,21 +369,14 @@ def main():
         old = path.read_text(encoding="utf-8-sig") if path.exists() else ""
         previous = tomllib.loads(old).get("mcp_servers", {})
         stale = [name for name, entry in previous.items() if name.startswith("bsl-") and name != "bsl-reference" and "workspace" in entry.get("args", []) and name not in local]
-        origin_names = {entry["name"] for entry in project["analyzers"]}
         unsafe = [name for name in stale if name not in origin_names]
         if unsafe:
             raise ValueError("Review existing analyzer scopes before replacing them: " + ", ".join(unsafe))
-        json_path = workspace / ".mcp.json"
-        previous_json = json.loads(json_path.read_text(encoding="utf-8-sig")) if json_path.exists() else {}
-        for name, entry in list(previous_json.get("mcpServers", {}).items()):
-            if name.startswith("bsl-") and name != "bsl-reference" and "workspace" in entry.get("args", []) and name not in local:
-                if name not in origin_names:
-                    raise ValueError("Review unexpected JSON analyzer profile: " + name)
-                del previous_json["mcpServers"][name]
-        write_backup(path, merge_servers(old, local, retire=[*shared, *stale]))
-        previous_json.setdefault("mcpServers", {}).update(standalone(shared, local)["mcpServers"])
-        write_backup(json_path, json.dumps(previous_json, ensure_ascii=False, indent=2) + "\n")
-        print("Applied local MCP profiles:", workspace)
+        pending[path] = merge_servers(old, local, retire=[*shared, *stale])
+    if args.apply:
+        for path, text in pending.items():
+            write_backup(path, text)
+        print("Applied local MCP profiles (" + args.client + "):", workspace)
     if not any([args.output, args.check, args.apply, args.apply_shared]):
         print(dump_servers(local))
 

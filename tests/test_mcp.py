@@ -5,10 +5,12 @@ import sys
 import tempfile
 import tomllib
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from configure_mcp import build_profiles, discover_source, dump_servers, import_atlassian_auth, merge_servers, standalone, write_backup
+from configure_mcp import build_profiles, discover_source, dump_servers, import_atlassian_auth, merge_json_servers, merge_servers, pi_adapter, standalone, write_backup
 from mcp_profile import command_for, read_env
+import configure_mcp
 
 
 class McpTests(unittest.TestCase):
@@ -109,6 +111,64 @@ trust_level = "trusted"
         self.assertEqual(len(saved), 1)
         self.assertEqual(saved[0].read_text(), "old credential-bearing config")
         self.assertEqual(list(project.iterdir()), [target])
+
+    def test_claude_and_pi_keep_same_worktree_and_wiki_with_client_specific_fields(self):
+        shared, local = self.profiles()
+        claude = standalone(shared, local)["mcpServers"]
+        pi = pi_adapter(shared, local)["mcpServers"]
+        self.assertEqual(set(claude), set(pi))
+        self.assertEqual(claude["openviking"]["type"], "http")
+        self.assertEqual(claude["bsl-test-task"]["type"], "stdio")
+        self.assertEqual(claude["bsl-test-task"]["args"], pi["bsl-test-task"]["args"])
+        self.assertNotIn("cwd", claude["bsl-test-task"])
+        self.assertNotIn("type", pi["openviking"])
+        self.assertEqual(pi["bsl-test-task"]["lifecycle"], "lazy-keep-alive")
+        self.assertEqual(pi["bsl-test-task"]["requestTimeoutMs"], 120000)
+        self.assertEqual(pi["llm-wiki-project"]["env"]["WIKI_ROOT"], str(self.source))
+        self.assertNotIn("rlm-tools-bsl", pi)
+
+    def test_json_merge_preserves_preferences_and_refuses_unknown_analyzer_scopes(self):
+        old = json.dumps({"settings": {"directTools": False}, "mcpServers": {
+            "other": {"command": "unrelated"},
+            "target": {"url": "https://old.invalid", "headers": {"Authorization": "old"}, "directTools": ["read"]},
+            "bsl-original": {"args": ["workspace", "--source-dir", "source"]}}})
+        entries = {"target": {"command": "new", "args": [], "env": {}}}
+        with self.assertRaises(ValueError):
+            merge_json_servers(old, entries)
+        result = merge_json_servers(old, entries, {"bsl-original"})
+        data = json.loads(result)
+        self.assertEqual(data["settings"], {"directTools": False})
+        self.assertEqual(data["mcpServers"]["other"], {"command": "unrelated"})
+        self.assertEqual(data["mcpServers"]["target"]["directTools"], ["read"])
+        self.assertNotIn("headers", data["mcpServers"]["target"])
+        self.assertNotIn("bsl-original", data["mcpServers"])
+        self.assertEqual(result, merge_json_servers(result, entries))
+
+    def test_pi_and_claude_apply_without_codex_config(self):
+        self.source.mkdir()
+        subprocess.run(["git", "init", str(self.source)], check=True, capture_output=True)
+        (self.source / "src/cf").mkdir(parents=True)
+        (self.source / "src/cf/Configuration.xml").touch()
+        (self.source / "bsl-analyzer.toml").write_text('[source]\nroot="src/cf"\n', encoding="utf-8")
+        for key in ["launcher", "node", "wiki_entrypoint"]:
+            component = self.root / (key + ".fixture")
+            component.touch()
+            self.runtime[key] = str(component)
+        (self.root / "scripts").mkdir()
+        (self.root / "scripts/mcp_profile.py").touch()
+        (self.root / "mcp").mkdir()
+        (self.root / "mcp/runtime.json").write_text(json.dumps(self.runtime), encoding="utf-8")
+        (self.root / "mcp/projects.json").write_text(json.dumps({"smm_auto": {
+            **self.project, "source": str(self.source)}}), encoding="utf-8")
+        for client, target in [("pi", ".pi/mcp-adapter.json"), ("claude", ".mcp.json")]:
+            with patch.object(configure_mcp, "REPOSITORY", self.root), patch("builtins.print"), patch.object(sys, "argv", [
+                "configure_mcp.py", "--workspace", str(self.source), "--client", client, "--apply"]):
+                configure_mcp.main()
+            data = json.loads((self.source / target).read_text(encoding="utf-8"))
+            self.assertEqual(len(data["mcpServers"]), 6)
+            self.assertFalse((self.source / ".codex").exists())
+            if client == "pi":
+                self.assertFalse((self.source / ".mcp.json").exists())
 
     def test_real_git_worktree_source_and_manifest_mismatch(self):
         self.source.mkdir()

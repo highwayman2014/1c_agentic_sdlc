@@ -1,0 +1,97 @@
+{
+  "mcpServers": {
+    "bsl-reference": {
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "bsl",
+        "--",
+        "mcp",
+        "serve",
+        "--profile",
+        "reference"
+      ],
+      "env": {},
+      "lifecycle": "lazy-keep-alive",
+      "requestTimeoutMs": 120000
+    },
+    "openviking": {
+      "url": "http://127.0.0.1:1933/mcp",
+      "lifecycle": "lazy-keep-alive",
+      "requestTimeoutMs": 120000
+    },
+    "llm-wiki-personal": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
+      ],
+      "env": {
+        "WIKI_ROOT": "C:\\Users\\shepa"
+      },
+      "lifecycle": "lazy-keep-alive",
+      "requestTimeoutMs": 120000
+    },
+    "atlassian-mcp-server": {
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "atlassian"
+      ],
+      "env": {},
+      "lifecycle": "lazy-keep-alive",
+      "requestTimeoutMs": 120000
+    },
+    "bsl-carsh-auto": {
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "bsl",
+        "--",
+        "mcp",
+        "serve",
+        "--profile",
+        "workspace",
+        "--mode",
+        "broker",
+        "--source-dir",
+        "D:\\repository\\1c\\carsh_auto",
+        "--configuration-root",
+        "src/cf",
+        "--extension",
+        "api=src/cfe/api",
+        "--extension",
+        "doo=src/cfe/doo",
+        "--extension",
+        "exch=src/cfe/exch",
+        "--extension",
+        "mob=src/cfe/mob",
+        "--extension",
+        "rms=src/cfe/rms",
+        "--enable-tool",
+        "references",
+        "--cache-dir",
+        "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\carsh-auto"
+      ],
+      "cwd": "D:\\repository\\1c\\carsh_auto",
+      "env": {
+        "BSL_MCP_IDLE_TTL_SECS": "43200",
+        "BSL_MCP_DAEMON_LOG": "1",
+        "BSL_LOG": "info"
+      },
+      "lifecycle": "lazy-keep-alive",
+      "requestTimeoutMs": 120000
+    },
+    "llm-wiki-project": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
+      ],
+      "cwd": "D:\\repository\\1c\\carsh_auto",
+      "env": {
+        "WIKI_ROOT": "D:\\repository\\1c\\carsh_auto"
+      },
+      "lifecycle": "lazy-keep-alive",
+      "requestTimeoutMs": 120000
+    }
+  }
+}

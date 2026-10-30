@@ -15,6 +15,9 @@
 Используй `scripts/configure_mcp.py --workspace <фактический-путь> --check`.
 Для применения используй `--apply-shared --apply`.
 Для просмотра файлов используй `--output <каталог>`.
+Для pi с pi-mcp-adapter используй `.pi/mcp-adapter.json` и `--client pi`.
+Для Claude Code используй `.mcp.json` и `--client claude`.
+Порядок подключения и готовые файлы описаны в `mcp/clients.md`.
 
 В worktree анализатор должен читать его исходники.
 Проектная wiki должна указывать на исходный проект.

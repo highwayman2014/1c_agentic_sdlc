@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "bsl-reference": {
+      "type": "stdio",
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "bsl",
+        "--",
+        "mcp",
+        "serve",
+        "--profile",
+        "reference"
+      ],
+      "env": {}
+    },
+    "openviking": {
+      "type": "http",
+      "url": "http://127.0.0.1:1933/mcp"
+    },
+    "llm-wiki-personal": {
+      "type": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
+      ],
+      "env": {
+        "WIKI_ROOT": "C:\\Users\\shepa"
+      }
+    },
+    "atlassian-mcp-server": {
+      "type": "stdio",
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "atlassian"
+      ],
+      "env": {}
+    }
+  }
+}
