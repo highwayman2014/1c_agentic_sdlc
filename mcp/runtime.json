@@ -1,11 +1,13 @@
 {
   "launcher": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer\\bsl-analyzer.exe",
+  "broker_application": "C:\\Users\\shepa\\.bsl-analyzer\\bin\\bsl-analyzer-app.exe",
   "node": "C:\\Program Files\\nodejs\\node.exe",
   "wiki_entrypoint": "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js",
   "embedding_defaults": {
     "EMBEDDING_URL": "https://polza.ai/api",
     "EMBEDDING_MODEL": "qwen/qwen3-embedding-8b",
-    "EMBEDDING_DIM": "1024"
+    "EMBEDDING_DIM": "1024",
+    "EMBEDDING_BATCH_SIZE": "128"
   },
   "embedding_file": "C:\\Users\\shepa\\.bsl-analyzer\\embeddings.env",
   "atlassian_file": "C:\\Users\\shepa\\.config\\1c-agentic-sdlc\\atlassian.env",

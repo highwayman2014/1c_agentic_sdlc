@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import threading
 
 REPOSITORY = Path(__file__).resolve().parent.parent
 ATLASSIAN_KEYS = {
@@ -53,7 +54,9 @@ def command_for(kind, arguments, runtime, inherited=None, lexical_only=False):
             raise ValueError("Set EMBEDDING_API_KEY in the private embedding file, or use --lexical-only")
         if Path(runtime["platform_help"]).is_dir():
             env.setdefault("BSL_PLATFORM_HELP_CORPUS", runtime["platform_help"])
-        return [runtime["launcher"], *arguments], env
+        broker = "--mode" in arguments and arguments[arguments.index("--mode") + 1:][:1] == ["broker"]
+        executable = runtime.get("broker_application", runtime["launcher"]) if broker else runtime["launcher"]
+        return [executable, *arguments], env
     for key, value in read_env(runtime["atlassian_file"]).items():
         if key in ATLASSIAN_KEYS:
             env[key] = value
@@ -63,6 +66,69 @@ def command_for(kind, arguments, runtime, inherited=None, lexical_only=False):
     if not uvx:
         raise ValueError("uvx is not installed")
     return [uvx, "mcp-atlassian", *arguments], env
+
+
+def run_windows_broker(command, env):
+    """Exit promptly on client EOF so pi does not taskkill the detached backend.
+
+    The broker drains Windows named pipes for 2 s; native pi kills a stdio
+    process tree after 500 ms. Relay using private pipes so this wrapper can
+    exit first while the broker finishes its normal disconnect independently.
+    """
+    child = subprocess.Popen(command, env=env, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
+    def trace(message):
+        if env.get("BSL_MCP_RELAY_LOG"):
+            with open(env["BSL_MCP_RELAY_LOG"], "a", encoding="utf-8") as stream:
+                stream.write(f"wrapper={os.getpid()} child={child.pid} {message}\n")
+    trace("started")
+    input_closed, output_closed = threading.Event(), threading.Event()
+
+    def write_all(fd, data):
+        remaining = memoryview(data)
+        while remaining:
+            remaining = remaining[os.write(fd, remaining):]
+
+    def forward_input():
+        try:
+            while data := os.read(sys.stdin.fileno(), 65536):
+                write_all(child.stdin.fileno(), data)
+        except (BrokenPipeError, OSError):
+            pass
+        finally:
+            trace("input EOF")
+            child.stdin.close()
+            input_closed.set()
+
+    def forward_output():
+        try:
+            while data := os.read(child.stdout.fileno(), 65536):
+                write_all(sys.stdout.fileno(), data)
+        except (BrokenPipeError, OSError):
+            pass
+        finally:
+            output_closed.set()
+
+    def forward_stderr():
+        try:
+            while data := os.read(child.stderr.fileno(), 65536):
+                write_all(sys.stderr.fileno(), data)
+        except (BrokenPipeError, OSError):
+            pass
+
+    threading.Thread(target=forward_input, daemon=True).start()
+    threading.Thread(target=forward_output, daemon=True).start()
+    threading.Thread(target=forward_stderr, daemon=True).start()
+    while not input_closed.wait(.01):
+        if child.poll() is not None:
+            output_closed.wait(.1)
+            return child.returncode
+    # No kill/wait: only the disposable proxy remains, with stdin already closed.
+    # Its normal two-second pipe drain disconnects the backend, which keeps its TTL.
+    trace("exiting after EOF")
+    # Interpreter shutdown can close pipe objects while a reader is blocked in
+    # ReadFile, waiting for the proxy's drain. Exit without that finalization.
+    os._exit(0)
 
 
 def main():
@@ -75,6 +141,9 @@ def main():
     arguments = argv[separator + 1:]
     runtime = json.loads((REPOSITORY / "mcp/runtime.json").read_text(encoding="utf-8"))
     command, env = command_for(args.kind, arguments, runtime, lexical_only=args.lexical_only)
+    broker = "--mode" in arguments and arguments[arguments.index("--mode") + 1:][:1] == ["broker"]
+    if os.name == "nt" and args.kind == "bsl" and broker:
+        return run_windows_broker(command, env)
     return subprocess.call(command, env=env)
 
 

@@ -204,6 +204,10 @@ def pi_native(shared, local):
             entries[name]["toolExposure"] = {tool: "codemode" for tool in
                 ["health", "find", "search", "list", "tree", "glob", "grep", "read", "add_resource"]}
             entries[name]["toolExposure"]["*"] = "hidden"
+            if local:
+                # A project HTTP definition would replace global headers entirely.
+                # Native pi permits exposure-only overrides that retain user auth.
+                entries[name] = {key: entries[name][key] for key in ("exposure", "toolExposure")}
     return {"mcpServers": entries}
 
 
@@ -217,6 +221,10 @@ def merge_json_servers(text, entries, origin_names=()):
             del servers[name]
     for name, entry in entries.items():
         merged = {**servers.get(name, {}), **entry}
+        if not any(key in entry for key in ("command", "url", "type")):
+            servers[name] = {key: value for key, value in merged.items()
+                             if key in {"enabled", "exposure", "toolExposure"}}
+            continue
         obsolete = ("command", "args", "cwd", "env") if "url" in entry else ("url", "headers", "oauth", "auth")
         for key in obsolete:
             merged.pop(key, None)
@@ -322,7 +330,7 @@ def main():
         (args.output / ".pi/mcp.json").write_text(json.dumps(pi_native(shared, local), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print("Rendered ready files:", args.output)
     if args.check or args.apply:
-        for path in [runtime["launcher"], runtime["node"], runtime["wiki_entrypoint"], str(args.repository / "scripts/mcp_profile.py")]:
+        for path in [runtime["launcher"], runtime.get("broker_application", runtime["launcher"]), runtime["node"], runtime["wiki_entrypoint"], str(args.repository / "scripts/mcp_profile.py")]:
             if not Path(path).is_file():
                 raise ValueError("Missing installed component: " + path)
         for entry in local.values():

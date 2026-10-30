@@ -16,10 +16,7 @@
       "exposure": "codemode"
     },
     "openviking": {
-      "url": "http://127.0.0.1:1933/mcp",
-      "timeout": 120,
       "exposure": "codemode",
-      "description": "Confluence search only: viking://resources/confluence-1c/. Import only explicitly selected pages.",
       "toolExposure": {
         "health": "codemode",
         "find": "codemode",

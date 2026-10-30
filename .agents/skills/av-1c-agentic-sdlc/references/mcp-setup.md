@@ -78,6 +78,9 @@ python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\
 [runtime.json](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/runtime.json) содержит общие пути, URL OpenViking и параметры эмбеддингов.
 [projects.json](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/projects.json) содержит исходные папки и состав анализаторов.
 Обновляй общую установку `bsl-analyzer` через установленный лаунчер.
+Для broker обёртка использует общий `bsl-analyzer-app.exe`.
+Путь задан в `runtime.json` как `broker_application`.
+На Windows это сохраняет backend после закрытия клиента pi.
 Версию приложения для каждого worktree не закрепляй.
 Отдельными остаются исходники, кеши и статусы индексов.
 
@@ -150,3 +153,11 @@ TTL broker в готовых профилях — 12 часов после от�
 Официальная документация: [MCP в Codex](https://learn.chatgpt.com/docs/extend/mcp?surface=cli),
 [приоритет конфигураций](https://learn.chatgpt.com/docs/config-file/config-basic),
 [MCP Atlassian](https://github.com/sooperset/mcp-atlassian).
+
+Размер пакета эмбеддингов по умолчанию — 128 текстов.
+Polza приняла этот размер с Qwen3 Embedding 8B и размерностью 1024.
+Настройка не меняет модель, размерность и область индекса.
+Первое заполнение большого workspace может занять несколько часов.
+До его завершения проверяй состояние семантики отдельно от лексики.
+После аварийной остановки дождись истечения блокировки кеша: более 60 секунд.
+Не удаляй файл блокировки работающего процесса.

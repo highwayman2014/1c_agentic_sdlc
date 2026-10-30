@@ -97,6 +97,9 @@ trust_level = "trusted"
         self.assertEqual(env["EMBEDDING_API_KEY"], "test-fixture-value")
         self.assertEqual(env["EMBEDDING_URL"], self.runtime["embedding_defaults"]["EMBEDDING_URL"])
         self.assertNotIn("test-fixture-value", command)
+        self.runtime["broker_application"] = "shared-managed-app.exe"
+        command, _ = command_for("bsl", ["mcp", "serve", "--mode", "broker"], self.runtime, inherited={})
+        self.assertEqual(command[0], "shared-managed-app.exe")
         _, lexical_env = command_for("bsl", [], self.runtime, inherited={}, lexical_only=True)
         self.assertFalse(any(key.startswith("EMBEDDING_") for key in lexical_env))
 
@@ -122,6 +125,9 @@ trust_level = "trusted"
         self.assertEqual(claude["bsl-test-task"]["args"], pi["bsl-test-task"]["args"])
         self.assertNotIn("cwd", claude["bsl-test-task"])
         self.assertNotIn("type", pi["openviking"])
+        self.assertNotIn("url", pi["openviking"])
+        self.assertEqual(set(pi["openviking"]), {"exposure", "toolExposure"})
+        self.assertEqual(pi_native(shared, {})["mcpServers"]["openviking"]["url"], self.runtime["openviking_url"])
         self.assertEqual(pi["bsl-test-task"]["exposure"], "codemode")
         self.assertEqual(pi["bsl-test-task"]["timeout"], 120)
         self.assertEqual(pi["llm-wiki-project"]["env"]["WIKI_ROOT"], str(self.source))
@@ -145,6 +151,11 @@ trust_level = "trusted"
         self.assertNotIn("headers", data["mcpServers"]["target"])
         self.assertNotIn("bsl-original", data["mcpServers"])
         self.assertEqual(result, merge_json_servers(result, entries))
+        partial = merge_json_servers(json.dumps({"mcpServers": {"openviking": {
+            "url": "http://old", "timeout": 120, "description": "old"}}}),
+            {"openviking": {"exposure": "codemode", "toolExposure": {"*": "hidden"}}})
+        self.assertEqual(json.loads(partial)["mcpServers"]["openviking"],
+                         {"exposure": "codemode", "toolExposure": {"*": "hidden"}})
 
     def test_pi_and_claude_apply_without_codex_config(self):
         self.source.mkdir()
