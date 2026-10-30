@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from configure_mcp import build_profiles, discover_source, dump_servers, import_atlassian_auth, merge_json_servers, merge_servers, pi_adapter, standalone, write_backup
+from configure_mcp import build_profiles, discover_source, dump_servers, import_atlassian_auth, merge_json_servers, merge_servers, pi_native, standalone, write_backup
 from mcp_profile import command_for, read_env
 import configure_mcp
 
@@ -115,17 +115,19 @@ trust_level = "trusted"
     def test_claude_and_pi_keep_same_worktree_and_wiki_with_client_specific_fields(self):
         shared, local = self.profiles()
         claude = standalone(shared, local)["mcpServers"]
-        pi = pi_adapter(shared, local)["mcpServers"]
-        self.assertEqual(set(claude), set(pi))
+        pi = pi_native(shared, local)["mcpServers"]
+        self.assertEqual(set(claude), set(pi) - {"rlm-tools-bsl"})
         self.assertEqual(claude["openviking"]["type"], "http")
         self.assertEqual(claude["bsl-test-task"]["type"], "stdio")
         self.assertEqual(claude["bsl-test-task"]["args"], pi["bsl-test-task"]["args"])
         self.assertNotIn("cwd", claude["bsl-test-task"])
         self.assertNotIn("type", pi["openviking"])
-        self.assertEqual(pi["bsl-test-task"]["lifecycle"], "lazy-keep-alive")
-        self.assertEqual(pi["bsl-test-task"]["requestTimeoutMs"], 120000)
+        self.assertEqual(pi["bsl-test-task"]["exposure"], "codemode")
+        self.assertEqual(pi["bsl-test-task"]["timeout"], 120)
         self.assertEqual(pi["llm-wiki-project"]["env"]["WIKI_ROOT"], str(self.source))
-        self.assertNotIn("rlm-tools-bsl", pi)
+        self.assertFalse(pi["rlm-tools-bsl"]["enabled"])
+        self.assertNotIn("lifecycle", pi["bsl-test-task"])
+        self.assertNotIn("requestTimeoutMs", pi["bsl-test-task"])
 
     def test_json_merge_preserves_preferences_and_refuses_unknown_analyzer_scopes(self):
         old = json.dumps({"settings": {"directTools": False}, "mcpServers": {
@@ -160,7 +162,7 @@ trust_level = "trusted"
         (self.root / "mcp/runtime.json").write_text(json.dumps(self.runtime), encoding="utf-8")
         (self.root / "mcp/projects.json").write_text(json.dumps({"smm_auto": {
             **self.project, "source": str(self.source)}}), encoding="utf-8")
-        for client, target in [("pi", ".pi/mcp-adapter.json"), ("claude", ".mcp.json")]:
+        for client, target in [("pi", ".pi/mcp.json"), ("claude", ".mcp.json")]:
             with patch.object(configure_mcp, "REPOSITORY", self.root), patch("builtins.print"), patch.object(sys, "argv", [
                 "configure_mcp.py", "--workspace", str(self.source), "--client", client, "--apply"]):
                 configure_mcp.main()

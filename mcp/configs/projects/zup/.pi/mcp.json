@@ -12,13 +12,26 @@
         "reference"
       ],
       "env": {},
-      "lifecycle": "lazy-keep-alive",
-      "requestTimeoutMs": 120000
+      "timeout": 120,
+      "exposure": "codemode"
     },
     "openviking": {
       "url": "http://127.0.0.1:1933/mcp",
-      "lifecycle": "lazy-keep-alive",
-      "requestTimeoutMs": 120000
+      "timeout": 120,
+      "exposure": "codemode",
+      "description": "Confluence search only: viking://resources/confluence-1c/. Import only explicitly selected pages.",
+      "toolExposure": {
+        "health": "codemode",
+        "find": "codemode",
+        "search": "codemode",
+        "list": "codemode",
+        "tree": "codemode",
+        "glob": "codemode",
+        "grep": "codemode",
+        "read": "codemode",
+        "add_resource": "codemode",
+        "*": "hidden"
+      }
     },
     "llm-wiki-personal": {
       "command": "C:\\Program Files\\nodejs\\node.exe",
@@ -28,8 +41,8 @@
       "env": {
         "WIKI_ROOT": "C:\\Users\\shepa"
       },
-      "lifecycle": "lazy-keep-alive",
-      "requestTimeoutMs": 120000
+      "timeout": 120,
+      "exposure": "codemode"
     },
     "atlassian-mcp-server": {
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
@@ -38,8 +51,8 @@
         "atlassian"
       ],
       "env": {},
-      "lifecycle": "lazy-keep-alive",
-      "requestTimeoutMs": 120000
+      "timeout": 120,
+      "exposure": "codemode"
     },
     "bsl-zup-dm": {
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
@@ -74,8 +87,8 @@
         "BSL_MCP_DAEMON_LOG": "1",
         "BSL_LOG": "info"
       },
-      "lifecycle": "lazy-keep-alive",
-      "requestTimeoutMs": 120000
+      "timeout": 120,
+      "exposure": "codemode"
     },
     "bsl-zup-smm": {
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
@@ -108,8 +121,8 @@
         "BSL_MCP_DAEMON_LOG": "1",
         "BSL_LOG": "info"
       },
-      "lifecycle": "lazy-keep-alive",
-      "requestTimeoutMs": 120000
+      "timeout": 120,
+      "exposure": "codemode"
     },
     "bsl-zup-carsh": {
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
@@ -142,8 +155,8 @@
         "BSL_MCP_DAEMON_LOG": "1",
         "BSL_LOG": "info"
       },
-      "lifecycle": "lazy-keep-alive",
-      "requestTimeoutMs": 120000
+      "timeout": 120,
+      "exposure": "codemode"
     },
     "llm-wiki-project": {
       "command": "C:\\Program Files\\nodejs\\node.exe",
@@ -154,8 +167,8 @@
       "env": {
         "WIKI_ROOT": "D:\\repository\\1c\\zup"
       },
-      "lifecycle": "lazy-keep-alive",
-      "requestTimeoutMs": 120000
+      "timeout": 120,
+      "exposure": "codemode"
     }
   }
 }

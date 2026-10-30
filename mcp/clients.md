@@ -1,108 +1,122 @@
-# Pi и Claude Code
+# Нативный MCP pi и Claude Code
 
-Проверено 30.10.2026: установлен `pi-mcp-adapter 7.0.0` и Claude Code `2.1.312`.
-В настройках pi пакет адаптера подключён, встроенный MCP отключён через `-builtin:mcp`.
-Готовые файлы рассчитаны на эту установку.
+Проверено 30.10.2026: pi `1.4.0`, Claude Code `2.1.312`.
+Пользователь выбрал встроенный MCP pi. Адаптер не требуется.
 
-## Файлы для рабочей папки
+## Готовые файлы
 
-| Клиент | Файл в папке проекта или worktree | Содержание |
-|---|---|---|
-| Claude Code | `.mcp.json` | Полный набор серверов с явными типами `stdio` и `http` |
-| Pi с pi-mcp-adapter | `.pi/mcp-adapter.json` | Полный набор серверов, lifecycle и таймауты адаптера |
-| Codex | `.codex/config.toml` | Анализатор текущей папки и проектная wiki; общие сервисы наследуются |
+| Клиент | Файл проекта или worktree |
+|---|---|
+| Pi | `.pi/mcp.json` |
+| Claude Code | `.mcp.json` |
+| Codex | `.codex/config.toml` |
 
-В каждом JSON есть справка платформы, OpenViking, Atlassian, обе wiki и анализатор.
-Для ЗУП подключаются три анализатора вместо одного.
-Команды, источники и кеши совпадают между клиентами.
-Ключи читает общий `scripts/mcp_profile.py` из локальных env-файлов.
-Отдельная установка анализатора для нового клиента не нужна.
+Pi и Claude Code получают полный набор: справка платформы, OpenViking, Atlassian,
+обе wiki и анализатор. В ЗУП подключаются три анализатора.
+В worktree pi также отключает глобальный RLM через `enabled=false`.
+В Codex общие сервисы наследуются из пользовательских настроек.
 
-Готовые файлы:
+- СММ: [pi](configs/projects/smm_auto/.pi/mcp.json), [Claude Code](configs/projects/smm_auto/.mcp.json).
+- КШР: [pi](configs/projects/carsh_auto/.pi/mcp.json), [Claude Code](configs/projects/carsh_auto/.mcp.json).
+- ЗУП: [pi](configs/projects/zup/.pi/mcp.json), [Claude Code](configs/projects/zup/.mcp.json).
+- БП: [pi](configs/projects/bp/.pi/mcp.json), [Claude Code](configs/projects/bp/.mcp.json).
+- DEV1C-33021: [pi](configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.pi/mcp.json), [Claude Code](configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.mcp.json).
 
-- СММ: [Claude Code](configs/projects/smm_auto/.mcp.json), [pi](configs/projects/smm_auto/.pi/mcp-adapter.json).
-- КШР: [Claude Code](configs/projects/carsh_auto/.mcp.json), [pi](configs/projects/carsh_auto/.pi/mcp-adapter.json).
-- ЗУП: [Claude Code](configs/projects/zup/.mcp.json), [pi](configs/projects/zup/.pi/mcp-adapter.json).
-- БП: [Claude Code](configs/projects/bp/.mcp.json), [pi](configs/projects/bp/.pi/mcp-adapter.json).
-- DEV1C-33021: [Claude Code](configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.mcp.json), [pi](configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.pi/mcp-adapter.json).
+Команды используют общую установку bsl-analyzer и локальные env-файлы авторизации.
+Кеши разделены по рабочим папкам. Wiki проекта указывает на исходную папку.
+Путь чужой задачи не копируй в новый worktree: передай установщику фактический путь.
 
-В worktree анализатор читает исходники задачи и использует её отдельный кеш.
-Проектная wiki указывает на основную папку проекта.
-Путь готового примера другой задачи не копируй в новый worktree: передай установщику фактическую папку.
+## Перейти с адаптера на встроенный MCP pi
 
-## Применение
+Из `D:\repository\1c_agentic_sdlc` проверь перенос:
 
-Выполняй команды из `D:\repository\1c_agentic_sdlc`.
-Сначала проверь пути:
+```powershell
+python scripts/migrate_pi_native.py
+```
+
+Примени перенос:
+
+```powershell
+python scripts/migrate_pi_native.py --apply
+```
+
+Скрипт переносит подключения из пользовательских файлов адаптера в
+`C:\Users\shepa\.pi\agent\mcp.json`, сохраняя существующие нативные записи.
+Он также добавляет отсутствующие общие профили из `configs/shared/pi/mcp.json`.
+Существующие подключения и перенесённые адреса имеют приоритет над этими значениями.
+Он сохраняет адреса и заголовки авторизации локально, переводит таймауты из
+миллисекунд в секунды и переносит точные списки инструментов в `toolExposure`.
+Импорты, OAuth, неизвестные параметры и неоднозначные фильтры требуют отдельной сверки:
+в этих случаях скрипт останавливается до изменения настроек.
+
+В пользовательском `settings.json` скрипт убирает `npm:pi-mcp-adapter`
+из `packages`, снимает `-builtin:mcp` и включает `builtin:mcp`.
+Остальные пакеты и настройки сохраняются. Установленный пакет и прежние
+конфиги остаются на диске. Резервные копии находятся вне Git,
+в `C:\Users\shepa\.config\1c-agentic-sdlc\backups`.
+При повторном запуске существующие нативные подключения имеют приоритет.
+
+Перезапусти pi. Встроенный MCP читает только пользовательский `mcp.json`
+и `.pi/mcp.json` доверенного проекта. Старые `.mcp.json`,
+`~/.config/mcp/mcp.json` и `mcp-adapter.json` он не читает.
+Нативный режим не использует авторизацию из хранилища адаптера автоматически.
+
+## Настроить проект или worktree
 
 ```powershell
 python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\dev1c-33021-spisanie-tmc --check
-```
 
-Выбери клиент:
-
-```powershell
-# Только pi: записать .pi/mcp-adapter.json
+# Нативный pi: записать .pi/mcp.json
 python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\dev1c-33021-spisanie-tmc --client pi --apply
 
-# Только Claude Code: записать .mcp.json
+# Claude Code: записать .mcp.json
 python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\dev1c-33021-spisanie-tmc --client claude --apply
 
-# Все три клиента; общие профили Codex уже должны быть установлены
+# Все три клиента; общие профили Codex должны быть уже установлены
 python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\dev1c-33021-spisanie-tmc --client all --apply
 ```
 
-Для обычной ветки передай основную рабочую папку.
-Без `--client` сохраняется прежний режим Codex: нативный TOML и общий `.mcp.json`.
-`--apply-shared` управляет только общими профилями Codex.
-Pi и Claude Code получают полный набор из проектного файла и не требуют глобального конфига Codex.
-Локальные env-файлы авторизации должны быть уже заполнены; см. [основную инструкцию](README.md#общая-установка-и-локальные-секреты).
+Для обычной ветки передай основную папку проекта.
+`--output <каталог>` формирует файлы всех трёх клиентов без применения.
+Без `--client` сохраняется режим Codex. `--apply-shared` управляет только Codex.
+Pi и Claude Code не требуют глобальных настроек Codex.
+Применение сохраняет посторонние серверы и настройки JSON.
+Неизвестные составы анализаторов требуют сверки до замены.
 
-Для просмотра используй `--output <каталог>`: он всегда создаёт файлы всех трёх клиентов.
-При применении сохраняются посторонние серверы и настройки JSON, включая настройки адаптера.
-Неизвестные составы анализаторов требуют ручной сверки до замены.
-Резервные копии находятся вне Git, в пользовательском `.config/1c-agentic-sdlc/backups`.
+Проектный файл pi заменяет пользовательский сервер с тем же именем целиком.
+Поэтому готовый проект использует определения из этого репозитория, даже если
+при миграции сохранён другой пользовательский маршрут Atlassian.
 
-## Поведение pi
+Общие определения без проектного анализатора:
+[pi](configs/shared/pi/mcp.json) и [Claude Code](configs/shared/claude/user-mcp.json).
+Это четыре готовых сервиса для объединения с пользовательским `mcpServers`,
+а не замена всей пользовательской конфигурации.
 
-Для серверов выбран `lifecycle="lazy-keep-alive"`.
-Адаптер подключает их по обращению; при отсутствии кеша метаданных он также может подключиться для получения списка инструментов.
-После подключения процесс не завершается по таймеру простоя адаптера.
-Таймаут запроса — `120000` миллисекунд.
-Broker анализатора дополнительно сохраняет backend 12 часов после отключения клиентов.
-Это не исправляет ошибку графа или холодный старт после перезагрузки Windows.
+## Поведение и проверка
 
-Адаптер также читает общий `.mcp.json`.
-Его собственный `.pi/mcp-adapter.json` имеет более высокий приоритет; одинаковые имена серверов объединяются.
-Оба файла создавай одним установщиком, чтобы их пути не расходились.
-Настройки `directTools`, `excludeTools` и общей политики разрешений установщик не добавляет; действуют настройки адаптера пользователя.
+В pi выбраны `timeout=120` секунд и `exposure="codemode"`.
+Инструменты доступны через встроенный codemode без загрузки всех схем в контекст модели.
+Pi подключает серверы в фоне при запуске сессии. Полей адаптера `lifecycle`
+и `requestTimeoutMs` в нативных файлах нет.
+Broker анализатора сохраняет backend 12 часов после отключения клиентов.
+Это не исправляет отказ графа или холодный старт после перезагрузки Windows.
 
-В pi выполни `/reload`, затем проверь `/mcp-adapter`.
-Для проектных серверов действуют доверие и подтверждения самого клиента; они не отключаются этими файлами.
-Команда `pi mcp list` относится к встроенному MCP и не проверяет собственный файл адаптера.
+OpenViking ограничен прежним списком инструментов через `toolExposure`.
+Поиск выполняй в `viking://resources/confluence-1c/`.
+Подключение не разрешает импорт материалов или операции в ИБ.
 
-Если перейдёшь на встроенный MCP pi, потребуется отдельная миграция:
-он использует `.pi/mcp.json` и `~/.pi/agent/mcp.json`, а не `mcp-adapter.json`.
-Не включай два MCP-расширения ради загрузки этих файлов.
+В pi проверь `/mcp` или `pi mcp list` из рабочей папки.
+`pi mcp list` действительно подключает все включённые серверы:
+он может запустить анализатор и его прогрев.
+После изменения файлов в открытой сессии выполни `/reload`.
+После отключения адаптера предпочтителен полный перезапуск pi.
+Доверие к проекту определяется клиентом; эти файлы его не включают автоматически.
 
-## Поведение Claude Code
+В Claude Code проверь `/mcp`. Для OpenViking задан явный `type="http"`.
+Нативные поля pi и Codex в файл Claude Code не попадают.
+После подключения проверь корни, обе wiki и готовность подсистем
+по [общему списку](README.md#проверить-подключение).
 
-Запускай `claude` из папки проекта или worktree.
-Проверь серверы через `/mcp`; Claude Code может запросить доверие к проектному `.mcp.json`.
-Обязательное поле `type="http"` уже добавлено к OpenViking.
-Нативные таймауты Codex и поля lifecycle адаптера в этот файл не попадают.
-
-Фрагменты для необязательной общей настройки:
-[Claude user MCP](configs/shared/claude/user-mcp.json) и [pi adapter](configs/shared/pi/mcp-adapter.json).
-В них только четыре общих сервиса.
-Это готовые определения MCP, а не замена всего `~/.claude.json` или конфигурации адаптера.
-Объединяй `mcpServers` с существующими настройками; проектные файлы уже содержат эти сервисы.
-Установщик не переписывает пользовательские файлы Claude и pi.
-
-Подключение сервера не разрешает операции в ИБ.
-Глобальные и сторонние серверы могут добавляться клиентом отдельно от этих файлов.
-После подключения проверь корни, wiki и готовность подсистем по [общему списку](README.md#проверить-подключение).
-
-Источники: [Claude Code MCP](https://code.claude.com/docs/en/mcp),
-[pi-mcp-adapter configuration](https://github.com/nicobailon/pi-mcp-adapter/blob/main/docs/configuration.md),
-[встроенный MCP pi](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/mcp.md).
+Источники: [встроенный MCP pi](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/mcp.md),
+[настройки pi](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/settings.md),
+[Claude Code MCP](https://code.claude.com/docs/en/mcp).

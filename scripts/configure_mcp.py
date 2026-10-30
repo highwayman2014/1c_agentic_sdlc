@@ -193,14 +193,17 @@ def standalone(shared, local):
     return {"mcpServers": entries}
 
 
-def pi_adapter(shared, local):
+def pi_native(shared, local):
     entries = {}
     for name, entry in {**shared, **local}.items():
-        if entry.get("enabled") is False:
-            continue
         entries[name] = {key: value for key, value in entry.items()
-                         if key in {"command", "args", "env", "url", "cwd"}}
-        entries[name].update(lifecycle="lazy-keep-alive", requestTimeoutMs=120000)
+                         if key in {"command", "args", "env", "url", "cwd", "enabled"}}
+        entries[name].update(timeout=120, exposure="codemode")
+        if name == "openviking":
+            entries[name]["description"] = "Confluence search only: viking://resources/confluence-1c/. Import only explicitly selected pages."
+            entries[name]["toolExposure"] = {tool: "codemode" for tool in
+                ["health", "find", "search", "list", "tree", "glob", "grep", "read", "add_resource"]}
+            entries[name]["toolExposure"]["*"] = "hidden"
     return {"mcpServers": entries}
 
 
@@ -217,7 +220,7 @@ def merge_json_servers(text, entries, origin_names=()):
         obsolete = ("command", "args", "cwd", "env") if "url" in entry else ("url", "headers", "oauth", "auth")
         for key in obsolete:
             merged.pop(key, None)
-        # Adapter files infer transport and use their own timeout units.
+        # Native pi infers transport from command/url.
         if "type" not in entry:
             merged.pop("type", None)
         if "cwd" not in entry:
@@ -316,7 +319,7 @@ def main():
         (args.output / ".codex/config.toml").write_text(dump_servers(local), encoding="utf-8")
         (args.output / ".mcp.json").write_text(json.dumps(standalone(shared, local), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         (args.output / ".pi").mkdir(exist_ok=True)
-        (args.output / ".pi/mcp-adapter.json").write_text(json.dumps(pi_adapter(shared, local), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        (args.output / ".pi/mcp.json").write_text(json.dumps(pi_native(shared, local), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print("Rendered ready files:", args.output)
     if args.check or args.apply:
         for path in [runtime["launcher"], runtime["node"], runtime["wiki_entrypoint"], str(args.repository / "scripts/mcp_profile.py")]:
@@ -357,9 +360,9 @@ def main():
         text = path.read_text(encoding="utf-8-sig") if path.exists() else ""
         pending[path] = merge_json_servers(text, standalone(shared, local)["mcpServers"], origin_names)
     if args.apply and args.client in {"pi", "all"}:
-        path = workspace / ".pi/mcp-adapter.json"
+        path = workspace / ".pi/mcp.json"
         text = path.read_text(encoding="utf-8-sig") if path.exists() else ""
-        pending[path] = merge_json_servers(text, pi_adapter(shared, local)["mcpServers"], origin_names)
+        pending[path] = merge_json_servers(text, pi_native(shared, local)["mcpServers"], origin_names)
     if args.apply and args.client in {"codex", "all"}:
         global_path = Path.home() / ".codex/config.toml"
         global_servers = tomllib.loads(global_path.read_text(encoding="utf-8-sig")).get("mcp_servers", {})
