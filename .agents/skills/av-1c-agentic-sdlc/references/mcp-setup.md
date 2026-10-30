@@ -84,7 +84,9 @@ python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\
 Версию приложения для каждого worktree не закрепляй.
 Отдельными остаются исходники, изменяемые кеши и статусы рабочих папок.
 Общий базовый индекс используется по [правилам индекса](search-index.md).
-Текущий генератор задаёт отдельный кеш, но ещё не подключает общий baseline.
+В СММ основной `bsl-analyzer.toml` и конфиг DEV1C-33021 подключают общий PostgreSQL baseline.
+Генератор MCP сохраняет отдельный изменяемый кеш; source TOML задаёт общий снимок.
+Проверка baseline и блокировка запуска описаны в [search-index.md](search-index.md).
 
 Локальные файлы:
 

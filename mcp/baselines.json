@@ -1,0 +1,14 @@
+{
+  "smm_auto": {
+    "source": "D:\\repository\\1c\\smm_auto",
+    "worktrees_root": "D:\\repository\\1c\\worktrees\\smm_auto",
+    "host": "127.0.0.1",
+    "port": 15432,
+    "database": "bsl_baseline",
+    "schema": "smm_auto",
+    "snapshot": "workspace-code:smm-auto-sqlite-g434948",
+    "credentials_file": "D:\\tools\\bsl-baseline\\reader.json",
+    "workspace_launch": "paused",
+    "pause_reason": "Shared baseline connection is configured. Workspace launch is paused until overlay embedding costs are controlled."
+  }
+}

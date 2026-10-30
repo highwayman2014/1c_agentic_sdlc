@@ -18,3 +18,25 @@ externals = []
 
 [output]
 display_language = "ru"
+
+# Shared snapshot migrated from the saved SQLite index. Historical Git SHA is unknown.
+[search.baseline]
+backend = "postgres"
+
+[search.baseline.postgres]
+host = "127.0.0.1"
+port = 15432
+dbname = "bsl_baseline"
+schema = "smm_auto"
+vault_role_base = "smm-auto-local"
+
+[search.baseline.postgres.credential_helper]
+program = 'C:\Users\shepa\AppData\Local\Programs\Python\Python312\python.exe'
+args = ['D:\repository\1c_agentic_sdlc\scripts\baseline_credentials.py', '--profile', 'smm_auto']
+
+[search.baseline.embedding]
+model = "qwen/qwen3-embedding-8b"
+dimension = 1024
+
+[search.baseline.workspace_code]
+snapshot_id = "workspace-code:smm-auto-sqlite-g434948"

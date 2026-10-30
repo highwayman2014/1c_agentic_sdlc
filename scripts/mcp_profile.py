@@ -44,6 +44,7 @@ def read_env(path):
 def command_for(kind, arguments, runtime, inherited=None, lexical_only=False):
     env = dict(os.environ if inherited is None else inherited)
     if kind == "bsl":
+        enforce_baseline_launch_policy(arguments)
         env.update(runtime["embedding_defaults"])
         for key, value in read_env(runtime["embedding_file"]).items():
             if key.startswith("EMBEDDING_") or key == "NAPARNIK_TOKEN":
@@ -66,6 +67,26 @@ def command_for(kind, arguments, runtime, inherited=None, lexical_only=False):
     if not uvx:
         raise ValueError("uvx is not installed")
     return [uvx, "mcp-atlassian", *arguments], env
+
+
+def enforce_baseline_launch_policy(arguments, policies=None):
+    """Fail before spawning a workspace whose paid embedding policy is unresolved."""
+    if "--profile" not in arguments or arguments[arguments.index("--profile") + 1:][:1] != ["workspace"]:
+        return
+    if "--source-dir" not in arguments:
+        raise ValueError("Workspace source directory is required before baseline validation")
+    source = Path(arguments[arguments.index("--source-dir") + 1]).resolve()
+    registry = REPOSITORY / "mcp/baselines.json"
+    if policies is None:
+        if not registry.exists():
+            return
+        policies = json.loads(registry.read_text(encoding="utf-8"))
+    for name, policy in policies.items():
+        main = Path(policy["source"]).resolve()
+        worktrees = Path(policy["worktrees_root"]).resolve()
+        if source == main or source.is_relative_to(worktrees):
+            if policy["workspace_launch"] != "enabled":
+                raise ValueError(f"Workspace MCP paused for {name}: {policy['pause_reason']}")
 
 
 def run_windows_broker(command, env):
