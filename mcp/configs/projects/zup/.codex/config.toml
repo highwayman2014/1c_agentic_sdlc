@@ -1,0 +1,45 @@
+[mcp_servers."bsl-zup-dm"]
+"command" = "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+"args" = ["D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py", "bsl", "--", "mcp", "serve", "--profile", "workspace", "--mode", "broker", "--source-dir", "D:\\repository\\1c\\zup", "--configuration-root", "src/cf/dm_zup", "--extension", "dm=src/cfe/dm", "--extension", "dm_access=src/cfe/dm_access", "--extension", "dm_doo=src/cfe/dm_doo", "--enable-tool", "references", "--cache-dir", "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-dm"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+"cwd" = "D:\\repository\\1c\\zup"
+
+[mcp_servers."bsl-zup-dm"."env"]
+"BSL_MCP_IDLE_TTL_SECS" = "43200"
+"BSL_MCP_DAEMON_LOG" = "1"
+"BSL_LOG" = "info"
+
+[mcp_servers."bsl-zup-smm"]
+"command" = "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+"args" = ["D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py", "bsl", "--", "mcp", "serve", "--profile", "workspace", "--mode", "broker", "--source-dir", "D:\\repository\\1c\\zup", "--configuration-root", "src/cf/smm_zup", "--extension", "smm=src/cfe/smm", "--extension", "smm_doo=src/cfe/smm_doo", "--enable-tool", "references", "--cache-dir", "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-smm"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+"cwd" = "D:\\repository\\1c\\zup"
+
+[mcp_servers."bsl-zup-smm"."env"]
+"BSL_MCP_IDLE_TTL_SECS" = "43200"
+"BSL_MCP_DAEMON_LOG" = "1"
+"BSL_LOG" = "info"
+
+[mcp_servers."bsl-zup-carsh"]
+"command" = "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+"args" = ["D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py", "bsl", "--", "mcp", "serve", "--profile", "workspace", "--mode", "broker", "--source-dir", "D:\\repository\\1c\\zup", "--configuration-root", "src/cf/carsh_zup", "--extension", "carsh=src/cfe/carsh", "--extension", "carsh_doo=src/cfe/carsh_doo", "--enable-tool", "references", "--cache-dir", "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-carsh"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+"cwd" = "D:\\repository\\1c\\zup"
+
+[mcp_servers."bsl-zup-carsh"."env"]
+"BSL_MCP_IDLE_TTL_SECS" = "43200"
+"BSL_MCP_DAEMON_LOG" = "1"
+"BSL_LOG" = "info"
+
+[mcp_servers."llm-wiki-project"]
+"command" = "C:\\Program Files\\nodejs\\node.exe"
+"args" = ["C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+"cwd" = "D:\\repository\\1c\\zup"
+
+[mcp_servers."llm-wiki-project"."env"]
+"WIKI_ROOT" = "D:\\repository\\1c\\zup"

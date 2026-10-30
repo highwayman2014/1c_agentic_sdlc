@@ -55,6 +55,7 @@ description: Ведение задач 1С от постановки Jira до �
 Не убирай чужие изменения через stash, reset или удаление.
 
 При подготовке, восстановлении или завершении worktree прочитай [worktree.md](references/worktree.md).
+При настройке MCP прочитай [mcp.md](references/mcp.md).
 
 ## Подготовь документы
 

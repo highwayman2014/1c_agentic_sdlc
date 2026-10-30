@@ -1,0 +1,134 @@
+{
+  "mcpServers": {
+    "bsl-reference": {
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "bsl",
+        "--",
+        "mcp",
+        "serve",
+        "--profile",
+        "reference"
+      ],
+      "env": {}
+    },
+    "openviking": {
+      "url": "http://127.0.0.1:1933/mcp"
+    },
+    "llm-wiki-personal": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
+      ],
+      "env": {
+        "WIKI_ROOT": "C:\\Users\\shepa"
+      }
+    },
+    "atlassian-mcp-server": {
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "atlassian"
+      ],
+      "env": {}
+    },
+    "bsl-bp": {
+      "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": [
+        "D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py",
+        "bsl",
+        "--",
+        "mcp",
+        "serve",
+        "--profile",
+        "workspace",
+        "--mode",
+        "broker",
+        "--source-dir",
+        "D:\\repository\\1c\\bp",
+        "--configuration-root",
+        "src/cf",
+        "--no-externals",
+        "--extension",
+        "any=src/cfe/any",
+        "--extension",
+        "any_doo=src/cfe/any_doo",
+        "--extension",
+        "any_exch=src/cfe/any_exch",
+        "--extension",
+        "carsh=src/cfe/carsh",
+        "--extension",
+        "carsh_doo=src/cfe/carsh_doo",
+        "--extension",
+        "carsh_exch=src/cfe/carsh_exch",
+        "--extension",
+        "carsh_uch=src/cfe/carsh_uch",
+        "--extension",
+        "dm=src/cfe/dm",
+        "--extension",
+        "dm_api=src/cfe/dm_api",
+        "--extension",
+        "dm_b2b=src/cfe/dm_b2b",
+        "--extension",
+        "dm_doo=src/cfe/dm_doo",
+        "--extension",
+        "dm_exch=src/cfe/dm_exch",
+        "--extension",
+        "dm_leasing=src/cfe/dm_leasing",
+        "--extension",
+        "dm_loan=src/cfe/dm_loan",
+        "--extension",
+        "dmh=src/cfe/dmh",
+        "--extension",
+        "dmh_doo=src/cfe/dmh_doo",
+        "--extension",
+        "ds=src/cfe/ds",
+        "--extension",
+        "prv=src/cfe/prv",
+        "--extension",
+        "prv_doo=src/cfe/prv_doo",
+        "--extension",
+        "prv_exch=src/cfe/prv_exch",
+        "--extension",
+        "smm=src/cfe/smm",
+        "--extension",
+        "smm_diadoc=src/cfe/smm_diadoc",
+        "--extension",
+        "smm_doo=src/cfe/smm_doo",
+        "--extension",
+        "smm_exch=src/cfe/smm_exch",
+        "--extension",
+        "smm_uch=src/cfe/smm_uch",
+        "--extension",
+        "tech=src/cfe/tech",
+        "--extension",
+        "tech_doo=src/cfe/tech_doo",
+        "--extension",
+        "uni_cpf=src/cfe/uni_cpf",
+        "--extension",
+        "uni_msfo=src/cfe/uni_msfo",
+        "--enable-tool",
+        "references",
+        "--cache-dir",
+        "D:\\bsl-analyzer-cache\\bp"
+      ],
+      "cwd": "D:\\repository\\1c\\bp",
+      "env": {
+        "BSL_MCP_IDLE_TTL_SECS": "43200",
+        "BSL_MCP_DAEMON_LOG": "1",
+        "BSL_LOG": "info"
+      }
+    },
+    "llm-wiki-project": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
+      ],
+      "cwd": "D:\\repository\\1c\\bp",
+      "env": {
+        "WIKI_ROOT": "D:\\repository\\1c\\bp"
+      }
+    }
+  }
+}

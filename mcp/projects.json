@@ -1,0 +1,223 @@
+{
+  "smm_auto": {
+    "source": "D:\\repository\\1c\\smm_auto",
+    "analyzers": [
+      {
+        "name": "bsl-smm-auto",
+        "args": [
+          "mcp",
+          "serve",
+          "--profile",
+          "workspace",
+          "--mode",
+          "broker",
+          "--source-dir",
+          "D:\\repository\\1c\\smm_auto",
+          "--enable-tool",
+          "references",
+          "--cache-dir",
+          "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\smm-auto"
+        ],
+        "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\smm-auto"
+      }
+    ]
+  },
+  "carsh_auto": {
+    "source": "D:\\repository\\1c\\carsh_auto",
+    "analyzers": [
+      {
+        "name": "bsl-carsh-auto",
+        "args": [
+          "mcp",
+          "serve",
+          "--profile",
+          "workspace",
+          "--mode",
+          "broker",
+          "--source-dir",
+          "D:\\repository\\1c\\carsh_auto",
+          "--configuration-root",
+          "src/cf",
+          "--extension",
+          "api=src/cfe/api",
+          "--extension",
+          "doo=src/cfe/doo",
+          "--extension",
+          "exch=src/cfe/exch",
+          "--extension",
+          "mob=src/cfe/mob",
+          "--extension",
+          "rms=src/cfe/rms",
+          "--enable-tool",
+          "references",
+          "--cache-dir",
+          "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\carsh-auto"
+        ],
+        "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\carsh-auto"
+      }
+    ]
+  },
+  "zup": {
+    "source": "D:\\repository\\1c\\zup",
+    "analyzers": [
+      {
+        "name": "bsl-zup-dm",
+        "args": [
+          "mcp",
+          "serve",
+          "--profile",
+          "workspace",
+          "--mode",
+          "broker",
+          "--source-dir",
+          "D:\\repository\\1c\\zup",
+          "--configuration-root",
+          "src/cf/dm_zup",
+          "--extension",
+          "dm=src/cfe/dm",
+          "--extension",
+          "dm_access=src/cfe/dm_access",
+          "--extension",
+          "dm_doo=src/cfe/dm_doo",
+          "--enable-tool",
+          "references",
+          "--cache-dir",
+          "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-dm"
+        ],
+        "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-dm"
+      },
+      {
+        "name": "bsl-zup-smm",
+        "args": [
+          "mcp",
+          "serve",
+          "--profile",
+          "workspace",
+          "--mode",
+          "broker",
+          "--source-dir",
+          "D:\\repository\\1c\\zup",
+          "--configuration-root",
+          "src/cf/smm_zup",
+          "--extension",
+          "smm=src/cfe/smm",
+          "--extension",
+          "smm_doo=src/cfe/smm_doo",
+          "--enable-tool",
+          "references",
+          "--cache-dir",
+          "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-smm"
+        ],
+        "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-smm"
+      },
+      {
+        "name": "bsl-zup-carsh",
+        "args": [
+          "mcp",
+          "serve",
+          "--profile",
+          "workspace",
+          "--mode",
+          "broker",
+          "--source-dir",
+          "D:\\repository\\1c\\zup",
+          "--configuration-root",
+          "src/cf/carsh_zup",
+          "--extension",
+          "carsh=src/cfe/carsh",
+          "--extension",
+          "carsh_doo=src/cfe/carsh_doo",
+          "--enable-tool",
+          "references",
+          "--cache-dir",
+          "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-carsh"
+        ],
+        "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-carsh"
+      }
+    ]
+  },
+  "bp": {
+    "source": "D:\\repository\\1c\\bp",
+    "analyzers": [
+      {
+        "name": "bsl-bp",
+        "args": [
+          "mcp",
+          "serve",
+          "--profile",
+          "workspace",
+          "--mode",
+          "broker",
+          "--source-dir",
+          "D:/repository/1c/bp",
+          "--configuration-root",
+          "src/cf",
+          "--no-externals",
+          "--extension",
+          "any=src/cfe/any",
+          "--extension",
+          "any_doo=src/cfe/any_doo",
+          "--extension",
+          "any_exch=src/cfe/any_exch",
+          "--extension",
+          "carsh=src/cfe/carsh",
+          "--extension",
+          "carsh_doo=src/cfe/carsh_doo",
+          "--extension",
+          "carsh_exch=src/cfe/carsh_exch",
+          "--extension",
+          "carsh_uch=src/cfe/carsh_uch",
+          "--extension",
+          "dm=src/cfe/dm",
+          "--extension",
+          "dm_api=src/cfe/dm_api",
+          "--extension",
+          "dm_b2b=src/cfe/dm_b2b",
+          "--extension",
+          "dm_doo=src/cfe/dm_doo",
+          "--extension",
+          "dm_exch=src/cfe/dm_exch",
+          "--extension",
+          "dm_leasing=src/cfe/dm_leasing",
+          "--extension",
+          "dm_loan=src/cfe/dm_loan",
+          "--extension",
+          "dmh=src/cfe/dmh",
+          "--extension",
+          "dmh_doo=src/cfe/dmh_doo",
+          "--extension",
+          "ds=src/cfe/ds",
+          "--extension",
+          "prv=src/cfe/prv",
+          "--extension",
+          "prv_doo=src/cfe/prv_doo",
+          "--extension",
+          "prv_exch=src/cfe/prv_exch",
+          "--extension",
+          "smm=src/cfe/smm",
+          "--extension",
+          "smm_diadoc=src/cfe/smm_diadoc",
+          "--extension",
+          "smm_doo=src/cfe/smm_doo",
+          "--extension",
+          "smm_exch=src/cfe/smm_exch",
+          "--extension",
+          "smm_uch=src/cfe/smm_uch",
+          "--extension",
+          "tech=src/cfe/tech",
+          "--extension",
+          "tech_doo=src/cfe/tech_doo",
+          "--extension",
+          "uni_cpf=src/cfe/uni_cpf",
+          "--extension",
+          "uni_msfo=src/cfe/uni_msfo",
+          "--enable-tool",
+          "references",
+          "--cache-dir",
+          "D:/bsl-analyzer-cache/bp"
+        ],
+        "cache": "D:/bsl-analyzer-cache/bp"
+      }
+    ]
+  }
+}

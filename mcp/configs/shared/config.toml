@@ -1,0 +1,30 @@
+[mcp_servers."bsl-reference"]
+"command" = "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+"args" = ["D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py", "bsl", "--", "mcp", "serve", "--profile", "reference"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+"env_vars" = ["NAPARNIK_TOKEN"]
+
+[mcp_servers."bsl-reference"."env"]
+
+[mcp_servers."openviking"]
+"url" = "http://127.0.0.1:1933/mcp"
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+
+[mcp_servers."llm-wiki-personal"]
+"command" = "C:\\Program Files\\nodejs\\node.exe"
+"args" = ["C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+
+[mcp_servers."llm-wiki-personal"."env"]
+"WIKI_ROOT" = "C:\\Users\\shepa"
+
+[mcp_servers."atlassian-mcp-server"]
+"command" = "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+"args" = ["D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py", "atlassian"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+
+[mcp_servers."atlassian-mcp-server"."env"]

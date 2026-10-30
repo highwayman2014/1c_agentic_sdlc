@@ -1,0 +1,20 @@
+target_platform_version = "8.3.27"
+
+[source]
+root = "src/cf"
+extensions = [
+  { name = "api", path = "src/cfe/api" },
+  { name = "bind", path = "src/cfe/bind" },
+  { name = "doo", path = "src/cfe/doo" },
+  { name = "esb", path = "src/cfe/esb" },
+  { name = "exch", path = "src/cfe/exch" },
+  { name = "kontur", path = "src/cfe/kontur" },
+  { name = "lax", path = "src/cfe/lax" },
+  { name = "mob", path = "src/cfe/mob" },
+  { name = "rms", path = "src/cfe/rms" },
+  { name = "sapi", path = "src/cfe/sapi" },
+]
+externals = []
+
+[output]
+display_language = "ru"

@@ -1,0 +1,21 @@
+[mcp_servers."bsl-smm-auto"]
+"command" = "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+"args" = ["D:\\repository\\1c_agentic_sdlc\\scripts\\mcp_profile.py", "bsl", "--", "mcp", "serve", "--profile", "workspace", "--mode", "broker", "--source-dir", "D:\\repository\\1c\\smm_auto", "--enable-tool", "references", "--cache-dir", "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\smm-auto"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+"cwd" = "D:\\repository\\1c\\smm_auto"
+
+[mcp_servers."bsl-smm-auto"."env"]
+"BSL_MCP_IDLE_TTL_SECS" = "43200"
+"BSL_MCP_DAEMON_LOG" = "1"
+"BSL_LOG" = "info"
+
+[mcp_servers."llm-wiki-project"]
+"command" = "C:\\Program Files\\nodejs\\node.exe"
+"args" = ["C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"]
+"startup_timeout_sec" = 120
+"tool_timeout_sec" = 120
+"cwd" = "D:\\repository\\1c\\smm_auto"
+
+[mcp_servers."llm-wiki-project"."env"]
+"WIKI_ROOT" = "D:\\repository\\1c\\smm_auto"
