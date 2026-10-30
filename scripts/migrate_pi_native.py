@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import sys
 
-from configure_mcp import REPOSITORY, write_backup
+from configure_mcp import PI_WIKI_SERVERS, REPOSITORY, write_backup
 
 
 def convert_server(entry):
@@ -78,8 +78,10 @@ def migrate(home, apply=False, defaults=None):
         for name, entry in data.get("mcpServers", {}).items():
             combined[name] = {**combined.get(name, {}), **entry}
     existing = current.get("mcpServers", {})
-    migrated = {name: convert_server(entry) for name, entry in combined.items() if name not in existing}
-    result = {**current, "mcpServers": {**(defaults or {}), **migrated, **existing}}
+    migrated = {name: convert_server(entry) for name, entry in combined.items()
+                if name not in existing and name not in PI_WIKI_SERVERS}
+    result = {**current, "mcpServers": {name: entry for name, entry in
+              {**(defaults or {}), **migrated, **existing}.items() if name not in PI_WIKI_SERVERS}}
     settings_path = agent / "settings.json"
     settings = without_adapter(read_json(settings_path))
     if apply:

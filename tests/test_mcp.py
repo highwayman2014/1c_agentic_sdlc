@@ -139,7 +139,7 @@ trust_level = "trusted"
         shared, local = self.profiles()
         claude = standalone(shared, local)["mcpServers"]
         pi = pi_native(shared, local)["mcpServers"]
-        self.assertEqual(set(claude), set(pi) - {"rlm-tools-bsl"})
+        self.assertEqual(set(claude) - {"llm-wiki-personal", "llm-wiki-project"}, set(pi) - {"rlm-tools-bsl"})
         self.assertEqual(claude["openviking"]["type"], "http")
         self.assertEqual(claude["bsl-test-task"]["type"], "stdio")
         self.assertEqual(claude["bsl-test-task"]["args"], pi["bsl-test-task"]["args"])
@@ -150,7 +150,9 @@ trust_level = "trusted"
         self.assertEqual(pi_native(shared, {})["mcpServers"]["openviking"]["url"], self.runtime["openviking_url"])
         self.assertEqual(pi["bsl-test-task"]["exposure"], "codemode")
         self.assertEqual(pi["bsl-test-task"]["timeout"], 120)
-        self.assertEqual(pi["llm-wiki-project"]["env"]["WIKI_ROOT"], str(self.source))
+        self.assertNotIn("llm-wiki-project", pi)
+        self.assertNotIn("llm-wiki-personal", pi)
+        self.assertEqual(claude["llm-wiki-project"]["env"]["WIKI_ROOT"], str(self.source))
         self.assertFalse(pi["rlm-tools-bsl"]["enabled"])
         self.assertNotIn("lifecycle", pi["bsl-test-task"])
         self.assertNotIn("requestTimeoutMs", pi["bsl-test-task"])
@@ -198,10 +200,19 @@ trust_level = "trusted"
                 "configure_mcp.py", "--workspace", str(self.source), "--client", client, "--apply"]):
                 configure_mcp.main()
             data = json.loads((self.source / target).read_text(encoding="utf-8"))
-            self.assertEqual(len(data["mcpServers"]), 6)
+            self.assertEqual(len(data["mcpServers"]), 4 if client == "pi" else 6)
             self.assertFalse((self.source / ".codex").exists())
             if client == "pi":
                 self.assertFalse((self.source / ".mcp.json").exists())
+
+    def test_pi_cleanup_removes_only_wiki_and_keeps_other_client_defaults(self):
+        old = json.dumps({"mcpServers": {
+            "llm-wiki-personal": {"command": "personal"},
+            "llm-wiki-project": {"command": "project"},
+            "other": {"url": "http://fixture", "headers": {"Authorization": "fixture-value"}}}})
+        result = json.loads(merge_json_servers(old, {}, retire={"llm-wiki-personal", "llm-wiki-project"}))
+        self.assertEqual(result["mcpServers"], {"other": {"url": "http://fixture", "headers": {"Authorization": "fixture-value"}}})
+        self.assertEqual(json.loads(merge_json_servers(old, {})), json.loads(old))
 
     def test_real_git_worktree_source_and_manifest_mismatch(self):
         self.source.mkdir()

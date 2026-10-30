@@ -33,17 +33,6 @@
         "*": "hidden"
       }
     },
-    "llm-wiki-personal": {
-      "command": "C:\\Program Files\\nodejs\\node.exe",
-      "args": [
-        "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
-      ],
-      "env": {
-        "WIKI_ROOT": "C:\\Users\\shepa"
-      },
-      "timeout": 120,
-      "exposure": "codemode"
-    },
     "atlassian-mcp-server": {
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
       "args": [

@@ -59,6 +59,23 @@ class NativePiTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             convert_server({"command": "x", "includeTools": ["read_*"]})
 
+    def test_migration_does_not_restore_wiki_mcp_from_any_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            legacy = home / ".config/mcp/mcp.json"
+            legacy.parent.mkdir(parents=True)
+            legacy.write_text(json.dumps({"mcpServers": {
+                "llm-wiki-project": {"command": "old-wiki"}, "other": {"command": "keep"}}}))
+            agent = home / ".pi/agent"
+            agent.mkdir(parents=True)
+            (agent / "mcp.json").write_text(json.dumps({"mcpServers": {"llm-wiki-personal": {"command": "old"}}}))
+            (agent / "settings.json").write_text(json.dumps({"packages": ["npm:@zosmaai/pi-llm-wiki"]}))
+            with patch("pathlib.Path.home", return_value=home), patch("builtins.print"):
+                migrate(home, apply=True, defaults={"llm-wiki-project": {"command": "default-wiki"}})
+            result = json.loads((agent / "mcp.json").read_text())["mcpServers"]
+            self.assertEqual(set(result), {"other"})
+            self.assertIn("npm:@zosmaai/pi-llm-wiki", json.loads((agent / "settings.json").read_text())["packages"])
+
 
 if __name__ == "__main__":
     unittest.main()

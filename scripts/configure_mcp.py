@@ -12,6 +12,8 @@ import tomllib
 
 from mcp_profile import ATLASSIAN_KEYS, REPOSITORY, read_env
 
+PI_WIKI_SERVERS = frozenset({"llm-wiki-personal", "llm-wiki-project"})
+
 
 def git(workspace, *arguments):
     result = subprocess.run(["git", "-C", str(workspace), *arguments], capture_output=True,
@@ -204,6 +206,8 @@ def standalone(shared, local):
 def pi_native(shared, local):
     entries = {}
     for name, entry in {**shared, **local}.items():
+        if name in PI_WIKI_SERVERS:
+            continue  # pi-llm-wiki supplies memory directly; avoid duplicate MCP tools.
         entries[name] = {key: value for key, value in entry.items()
                          if key in {"command", "args", "env", "url", "cwd", "enabled"}}
         entries[name].update(timeout=120, exposure="codemode")
@@ -223,9 +227,11 @@ def pi_native(shared, local):
     return {"mcpServers": entries}
 
 
-def merge_json_servers(text, entries, origin_names=()):
+def merge_json_servers(text, entries, origin_names=(), retire=()):
     data = json.loads(text) if text else {}
     servers = data.setdefault("mcpServers", {})
+    for name in retire:
+        servers.pop(name, None)
     for name, entry in list(servers.items()):
         if name.startswith("bsl-") and name != "bsl-reference" and "workspace" in entry.get("args", []) and name not in entries:
             if name not in origin_names:
@@ -388,7 +394,8 @@ def main():
     if args.apply and args.client in {"pi", "all"}:
         path = workspace / ".pi/mcp.json"
         text = path.read_text(encoding="utf-8-sig") if path.exists() else ""
-        pending[path] = merge_json_servers(text, pi_native(shared, local)["mcpServers"], origin_names)
+        pending[path] = merge_json_servers(text, pi_native(shared, local)["mcpServers"], origin_names,
+                                           retire=PI_WIKI_SERVERS)
     if args.apply and args.client in {"codex", "all"}:
         global_path = Path.home() / ".codex/config.toml"
         global_servers = tomllib.loads(global_path.read_text(encoding="utf-8-sig")).get("mcp_servers", {})

@@ -30,17 +30,6 @@
         "*": "hidden"
       }
     },
-    "llm-wiki-personal": {
-      "command": "C:\\Program Files\\nodejs\\node.exe",
-      "args": [
-        "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
-      ],
-      "env": {
-        "WIKI_ROOT": "C:\\Users\\shepa"
-      },
-      "timeout": 120,
-      "exposure": "codemode"
-    },
     "atlassian-mcp-server": {
       "command": "C:\\Users\\shepa\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
       "args": [
@@ -75,18 +64,6 @@
         "BSL_MCP_IDLE_TTL_SECS": "43200",
         "BSL_MCP_DAEMON_LOG": "1",
         "BSL_LOG": "info"
-      },
-      "timeout": 120,
-      "exposure": "codemode"
-    },
-    "llm-wiki-project": {
-      "command": "C:\\Program Files\\nodejs\\node.exe",
-      "args": [
-        "C:\\Users\\shepa\\.local\\share\\llm-wiki-mcp\\node_modules\\@zosmaai\\pi-llm-wiki\\dist\\mcp\\index.js"
-      ],
-      "cwd": "D:\\repository\\1c\\worktrees\\smm_auto\\dev1c-33021-spisanie-tmc",
-      "env": {
-        "WIKI_ROOT": "D:\\repository\\1c\\smm_auto"
       },
       "timeout": 120,
       "exposure": "codemode"
