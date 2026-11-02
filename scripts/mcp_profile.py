@@ -43,21 +43,30 @@ def read_env(path):
 
 def command_for(kind, arguments, runtime, inherited=None, lexical_only=False):
     env = dict(os.environ if inherited is None else inherited)
+    if kind == "bsl-unified":
+        if arguments:
+            raise ValueError("Unified MCP selects sources from the session directory and TOML")
+        from unified_bsl import configure
+        return configure(runtime, env, REPOSITORY)
     if kind == "bsl-live":
         if arguments:
             raise ValueError("Live-only MCP uses fixed source and connection settings; extra arguments are not accepted")
         from onec_runtime import configure
         return configure(runtime, env)
     if kind == "bsl":
-        enforce_baseline_launch_policy(arguments)
-        env.update(runtime["embedding_defaults"])
-        for key, value in read_env(runtime["embedding_file"]).items():
-            if key.startswith("EMBEDDING_") or key == "NAPARNIK_TOKEN":
-                env[key] = value
+        policy_mode = enforce_baseline_launch_policy(arguments)
+        lexical_only = lexical_only or policy_mode == "lexical-only"
         if lexical_only:
-            env = {key: value for key, value in env.items() if not key.startswith("EMBEDDING_")}
-        elif not env.get("EMBEDDING_API_KEY"):
-            raise ValueError("Set EMBEDDING_API_KEY in the private embedding file, or use --lexical-only")
+            # Do not even read provider credentials. Also discard broker-frozen values.
+            env = {key: value for key, value in env.items()
+                   if not key.startswith(("EMBEDDING_", "BSL_MCP_EFFECTIVE_EMBEDDING_"))}
+        else:
+            env.update(runtime["embedding_defaults"])
+            for key, value in read_env(runtime["embedding_file"]).items():
+                if key.startswith("EMBEDDING_") or key == "NAPARNIK_TOKEN":
+                    env[key] = value
+            if not env.get("EMBEDDING_API_KEY"):
+                raise ValueError("Set EMBEDDING_API_KEY in the private embedding file, or use --lexical-only")
         if Path(runtime["platform_help"]).is_dir():
             env.setdefault("BSL_PLATFORM_HELP_CORPUS", runtime["platform_help"])
         broker = "--mode" in arguments and arguments[arguments.index("--mode") + 1:][:1] == ["broker"]
@@ -75,7 +84,7 @@ def command_for(kind, arguments, runtime, inherited=None, lexical_only=False):
 
 
 def enforce_baseline_launch_policy(arguments, policies=None):
-    """Fail before spawning a workspace whose paid embedding policy is unresolved."""
+    """Return an exact-source lexical override, otherwise enforce the launch gate."""
     if "--profile" not in arguments or arguments[arguments.index("--profile") + 1:][:1] != ["workspace"]:
         return
     if "--source-dir" not in arguments:
@@ -90,6 +99,8 @@ def enforce_baseline_launch_policy(arguments, policies=None):
         main = Path(policy["source"]).resolve()
         worktrees = Path(policy["worktrees_root"]).resolve()
         if source == main or source.is_relative_to(worktrees):
+            if source in {Path(path).resolve() for path in policy.get("lexical_only_sources", [])}:
+                return "lexical-only"
             if policy["workspace_launch"] != "enabled":
                 raise ValueError(f"Workspace MCP paused for {name}: {policy['pause_reason']}")
 
@@ -159,7 +170,7 @@ def run_windows_broker(command, env):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=["bsl", "bsl-live", "atlassian"])
+    parser.add_argument("kind", choices=["bsl", "bsl-live", "bsl-unified", "atlassian"])
     parser.add_argument("--lexical-only", action="store_true")
     argv = sys.argv[1:]
     separator = argv.index("--") if "--" in argv else len(argv)
@@ -167,8 +178,8 @@ def main():
     arguments = argv[separator + 1:]
     runtime = json.loads((REPOSITORY / "mcp/runtime.json").read_text(encoding="utf-8"))
     command, env = command_for(args.kind, arguments, runtime, lexical_only=args.lexical_only)
-    broker = "--mode" in arguments and arguments[arguments.index("--mode") + 1:][:1] == ["broker"]
-    if os.name == "nt" and args.kind == "bsl" and broker:
+    broker = "--mode" in command and command[command.index("--mode") + 1:][:1] == ["broker"]
+    if os.name == "nt" and args.kind in {"bsl", "bsl-unified"} and broker:
         return run_windows_broker(command, env)
     return subprocess.call(command, env=env)
 

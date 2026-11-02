@@ -22,7 +22,8 @@
         "worktree_name": "bsl-smm"
       }
     ],
-    "live_server": "bsl-smm-live"
+    "live_server": "bsl-smm-live",
+    "unified": true
   },
   "carsh_auto": {
     "source": "D:\\repository\\1c\\carsh_auto",

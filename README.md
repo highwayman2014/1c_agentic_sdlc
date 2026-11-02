@@ -10,6 +10,7 @@
 - [av-1c-agentic-sdlc](.agents/skills/av-1c-agentic-sdlc/SKILL.md) — общий процесс и документы задачи.
 - [bsl-analyzer.toml](bsl-analyzer.toml) — состав СММ: CF и десять расширений.
 - [Готовые MCP-настройки](mcp/configs) — общие серверы, четыре проекта и worktree DEV1C-33021.
+- [install_unified_bsl.py](scripts/install_unified_bsl.py) — единое глобальное подключение BSL для Codex, pi и Claude Code.
 - [configure_mcp.py](scripts/configure_mcp.py) — проверка и применение настроек для обычной папки или worktree.
 
 Этот репозиторий содержит правила, навык и готовые настройки инструментов.

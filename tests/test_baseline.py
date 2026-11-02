@@ -32,6 +32,29 @@ class BaselineTests(unittest.TestCase):
             enforce_baseline_launch_policy(["--profile", "reference"], policy)
             enforce_baseline_launch_policy(["--profile", "workspace", "--source-dir", str(root / "trees-neighbor")], policy)
 
+    def test_exact_source_lexical_override_keeps_other_workspaces_paused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            task = root / "trees" / "task-1"
+            policy = {"fixture": {"source": str(root / "main"), "worktrees_root": str(root / "trees"),
+                                  "workspace_launch": "paused", "pause_reason": "No paid fill",
+                                  "lexical_only_sources": [str(task)]}}
+            args = ["--profile", "workspace", "--source-dir", str(task)]
+            self.assertEqual(enforce_baseline_launch_policy(args, policy), "lexical-only")
+            for other in (root / "main", task / "child", root / "trees" / "task-2"):
+                with self.assertRaisesRegex(ValueError, "No paid fill"):
+                    enforce_baseline_launch_policy([*args[:-1], str(other)], policy)
+
+    def test_lexical_policy_removes_inherited_embedding_settings_without_reading_keys(self):
+        inherited = {"EMBEDDING_URL": "https://provider.invalid", "EMBEDDING_API_KEY": "fixture",
+                     "BSL_MCP_EFFECTIVE_EMBEDDING_QUERY_PREFIX": "frozen", "KEEP": "yes"}
+        runtime = {"launcher": "shared.exe", "platform_help": "missing-help"}
+        with patch("mcp_profile.enforce_baseline_launch_policy", return_value="lexical-only"), patch("mcp_profile.read_env") as read:
+            command, env = command_for("bsl", ["--profile", "workspace"], runtime, inherited=inherited)
+            self.assertEqual(env, {"KEEP": "yes"})
+            self.assertEqual(command[0], "shared.exe")
+            read.assert_not_called()
+
     def test_launch_refused_before_reading_provider_credentials(self):
         with patch("mcp_profile.enforce_baseline_launch_policy", side_effect=ValueError("paused")), patch("mcp_profile.read_env") as read:
             with self.assertRaisesRegex(ValueError, "paused"):

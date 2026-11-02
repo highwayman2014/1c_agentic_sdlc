@@ -25,12 +25,10 @@ RLM, Jenkins, Vanessa и подключения к ИБ добавляй по у
 - [Проект БП: CF и все расширения](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/bp/.codex/config.toml).
 - [Worktree DEV1C-33021](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.codex/config.toml) и его [полный JSON MCP](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.mcp.json).
 
-В основной папке СММ и каждом её worktree MCP-анализатор называется `bsl-smm`.
-Имя задаётся полями `name` и `worktree_name` в `mcp/projects.json`.
-Номер задачи и полное имя папки в имя сервера не добавляются.
-Источник и кеш выбираются отдельно для текущей рабочей папки.
-Переименование существующего сервера сохраняет его прежний кеш.
-HTTP-инструменты используют отдельное имя `bsl-smm-live`.
+С 02.11.2026 основная папка СММ и готовые шаблоны worktree используют `bsl`.
+Справка, анализ исходников и live-инструменты объединены.
+Общая установка и выбор папки описаны в [mcp.md](mcp.md).
+КШР, ЗУП и БП пока сохраняют прежние проектные профили.
 
 Файлы содержат действующие пути и состав исходников.
 Codex использует глобальный `~/.codex/config.toml` и локальный `.codex/config.toml` доверенного проекта.
@@ -116,7 +114,8 @@ python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\
 Резервные копии создаются вне проектов: `C:\Users\shepa\.config\1c-agentic-sdlc\backups`.
 
 Для намеренного лексического режима добавь `--lexical-only` перед `--` в вызов `mcp_profile.py`.
-Готовые профили рассчитаны на семантический поиск с уже настроенным ключом.
+Единый профиль СММ не читает ключ провайдера и работает без семантики.
+Прежние профили других проектов сохраняют свои настройки.
 
 ## Что проверено в текущих проектах
 
@@ -145,7 +144,7 @@ OpenViking и персональная wiki уже настроены глоба
 
 1. Открой рабочую папку как доверенный проект Codex.
 2. Выполни `codex mcp list` из этой папки.
-3. Вызови `syntax_help` в `bsl-reference`.
+3. В СММ вызови `syntax_help` в `bsl`; для прежних профилей используй `bsl-reference`.
 4. Проверь `search`, `graph`, `diagnostics` и `metadata` через `action="status"` рабочего анализатора.
 5. Проверь semantic target отдельно от lexical target.
 6. Выполни `search_code` и проверь корни результатов и признаки неполной выдачи.
