@@ -1,31 +1,37 @@
 # Настройки MCP
 
-С 02.11.2026 СММ использует единый MCP `bsl`.
-Он объединяет справку, анализ текущих исходников и live-инструменты.
-Профили КШР, ЗУП и БП пока сохраняют прежний состав.
+Единый MCP `bsl` объединяет справку платформы, анализ исходников и live-инструменты.
+Общие скрипты и навык не зависят от имени проекта.
+Пути, состав исходников, подключения и политики запуска задаются конфигами.
 
-Глобальная установка для Codex, Claude Code и pi:
+| Файл | Назначение |
+|---|---|
+| `runtime.json` | Общая установка, сервисы, каталог кешей и имена заменяемых серверов |
+| `projects.json` | Ключи проектов, основные рабочие папки и режим профиля |
+| `bsl-analyzer.toml` в проекте | CF, расширения и общий baseline |
+| `baselines.json` | Источники baseline, роль credential helper и политика запуска |
+| `baseline-service.json` | Docker-сервис baseline, каталог секретов и список схем |
+| `onec-connections.json` | Именованные подключения к ИБ |
+| `onec-credential-sources.json` | Ссылки на локальные учётные данные |
+
+Для нового проекта добавь запись в `projects.json` и его TOML.
+Примеры находятся в [examples](examples).
+Файлы в [configs](configs) содержат готовые примеры конкретных окружений.
+Адаптируй пути перед применением.
+Секреты храни вне Git.
+
+Команды выполняй из корня репозитория:
 
 ```powershell
 python scripts/install_unified_bsl.py --apply
-python scripts/configure_mcp.py --workspace D:\repository\1c\smm_auto --client all --apply-shared --apply
+python scripts/configure_mcp.py --workspace <путь-проекта> --check
+python scripts/configure_mcp.py --workspace <путь-проекта> --client all --apply-shared --apply
 ```
 
-Обёртка выбирает ближайший TOML до границы Git.
-В Codex проектный конфиг явно закрепляет `cwd`.
-Вне проекта с TOML доступны справка и live-инструменты на пустом источнике.
-Исполняемый app выбирается через указатель версии общего лаунчера.
-Кеши рабочих папок разделяет штатный namespace анализатора.
+Без `--apply` глобальный установщик проверяет изменения без записи.
+Генератор с `--output <каталог>` сохраняет готовые файлы без применения.
+Проектная запись `unified=false` сохраняет прежние профили из `analyzers`.
 
-Единый профиль не читает ключ провайдера эмбеддингов.
-В 0.4.3 PostgreSQL overlay без embedder не подготавливается.
-Поэтому поиск baseline может не учитывать текущие изменения.
-Проверяй freshness/completeness каждого ответа.
-Граф и диагностики проверяй отдельно от поиска.
-Подробные правила: [настройка MCP](../.agents/skills/av-1c-agentic-sdlc/references/mcp.md)
+Проверяй полноту overlay отдельно от готовности сервера.
+Правила: [настройка MCP](../.agents/skills/av-1c-agentic-sdlc/references/mcp.md)
 и [индексы](../.agents/skills/av-1c-agentic-sdlc/references/search-index.md).
-
-
-Назначение инструментов и порядок настройки описаны в навыке
-[av-1c-agentic-sdlc](../.agents/skills/av-1c-agentic-sdlc/SKILL.md).
-Готовые файлы находятся в [configs](configs).

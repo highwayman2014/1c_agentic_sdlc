@@ -1,0 +1,11 @@
+{
+  "image": "pgvector/pgvector@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d",
+  "container": "bsl-baseline-postgres",
+  "volume": "bsl-baseline-pg17",
+  "private_directory": "D:/tools/bsl-baseline",
+  "host": "127.0.0.1",
+  "port": 15432,
+  "schemas": [
+    "smm_auto"
+  ]
+}

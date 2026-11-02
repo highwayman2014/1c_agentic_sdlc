@@ -7,13 +7,23 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from baseline_credentials import PROTOCOL, resolve
+from baseline_service import schema_grants
 from mcp_profile import command_for, enforce_baseline_launch_policy
 
 
 class BaselineTests(unittest.TestCase):
+    def test_service_grants_only_configured_schemas_and_quotes_names(self):
+        sql = schema_grants(['project_one', 'project"two'])
+        self.assertIn('GRANT USAGE ON SCHEMA "project_one"', sql)
+        self.assertIn('GRANT USAGE ON SCHEMA "project""two"', sql)
+        self.assertNotIn('GRANT INSERT', sql)
+        self.assertEqual(schema_grants([]), '')
+        with self.assertRaises(RuntimeError):
+            schema_grants(['invalid$grant$name'])
+
     def test_reader_protocol_and_url_encoding(self):
-        request = {"protocol": PROTOCOL, "action": "resolve-url", "mode": "reader", "vault_role_base": "smm-auto-local"}
-        profile = {"host": "127.0.0.1", "port": 15432, "database": "bsl_baseline"}
+        request = {"protocol": PROTOCOL, "action": "resolve-url", "mode": "reader", "vault_role_base": "fixture-reader"}
+        profile = {"host": "127.0.0.1", "port": 15432, "database": "bsl_baseline", "vault_role_base": "fixture-reader"}
         value = resolve(request, profile, {"user": "reader", "password": "fixture@/:"})
         self.assertEqual(value["url"], "postgres://reader:fixture%40%2F%3A@127.0.0.1:15432/bsl_baseline")
         for key, invalid in [("mode", "writer"), ("mode", "migrator"), ("vault_role_base", "other"), ("protocol", "other")]:

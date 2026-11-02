@@ -9,7 +9,8 @@ from configure_mcp import REPOSITORY, merge_json_servers, merge_servers, pi_nati
 def install(home, apply=False):
     home = Path(home)
     entry = server(sys.executable, [str(REPOSITORY / "scripts/mcp_profile.py"), "bsl-unified"], env={})
-    retired = {"bsl-reference", "bsl-smm-live", "bsl-smm"}
+    runtime = json.loads((REPOSITORY / "mcp/runtime.json").read_text(encoding="utf-8"))
+    retired = set(runtime.get("retired_bsl_servers", []))
     paths = {
         home / ".codex/config.toml": lambda old: merge_servers(old, {"bsl": entry}, retire=retired),
         home / ".pi/agent/mcp.json": lambda old: merge_json_servers(old, pi_native({"bsl": entry}, {})["mcpServers"], retire=retired),

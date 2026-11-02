@@ -62,6 +62,13 @@ class UnifiedTests(unittest.TestCase):
         self.assertEqual([n for n in local if n.startswith("bsl")], ["bsl"])
         self.assertIn("bsl-unified", local["bsl"]["args"])
 
+    def test_new_project_only_requires_a_source_in_registry(self):
+        runtime = {"node": "node", "wiki_entrypoint": "wiki", "openviking_url": "http://localhost"}
+        shared, local = build_profiles({"source": str(Path.cwd())}, Path.cwd(), Path.cwd(), runtime)
+        self.assertIn("bsl", shared)
+        self.assertIn("bsl", local)
+        self.assertEqual(local["bsl"]["cwd"], str(Path.cwd()))
+
     def test_install_preserves_other_servers_and_client_settings(self):
         with tempfile.TemporaryDirectory() as tmp:
             home = Path(tmp)

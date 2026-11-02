@@ -1,0 +1,9 @@
+target_platform_version = "8.3.27"
+
+[source]
+root = "src/cf"
+extensions = []
+externals = []
+
+[output]
+display_language = "ru"

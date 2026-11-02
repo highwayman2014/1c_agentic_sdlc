@@ -18,5 +18,10 @@
   "live_source": "C:\\Users\\shepa\\.config\\1c-agentic-sdlc\\runtime\\smm-auto-live",
   "live_cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\live\\smm-auto-avasilyev",
   "unified_cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\unified-pilot-smm-043-clean",
-  "broker_current": "C:\\Users\\shepa\\.bsl-analyzer\\bin\\current"
+  "broker_current": "C:\\Users\\shepa\\.bsl-analyzer\\bin\\current",
+  "retired_bsl_servers": [
+    "bsl-reference",
+    "bsl-smm-live",
+    "bsl-smm"
+  ]
 }
