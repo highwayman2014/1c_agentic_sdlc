@@ -10,7 +10,8 @@ PROTOCOL = "bsl-analyzer.postgres-helper.v1"
 
 def resolve(request, profile, credentials):
     if (request.get("protocol") != PROTOCOL or request.get("action") != "resolve-url"
-            or request.get("mode") != "reader" or request.get("vault_role_base") != "smm-auto-local"):
+            or request.get("mode") != "reader" or not profile.get("vault_role_base")
+            or request.get("vault_role_base") != profile["vault_role_base"]):
         raise ValueError("Only the configured local reader role is supported")
     host, port, database = profile["host"], profile["port"], profile["database"]
     user = quote(credentials["user"], safe="")

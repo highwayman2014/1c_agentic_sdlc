@@ -1,156 +1,52 @@
-# Нативный MCP pi и Claude Code
+# Настрой клиенты MCP
 
-Проверено 30.10.2026: pi `1.4.0`, Claude Code `2.1.312`.
-Пользователь выбрал встроенный MCP pi. Адаптер не требуется.
+Используй общий установленный навык и общую обёртку.
+Путь установки навыка выбирай по настройкам клиента.
+Не создавай отдельную изменяемую копию навыка для каждого worktree.
+Не создавай `CLAUDE.md`, если проект его не использует.
 
-## Готовые файлы
+| Клиент | Глобальный файл | Проектный файл |
+|---|---|---|
+| Codex | `~/.codex/config.toml` | `.codex/config.toml` |
+| pi | `~/.pi/agent/mcp.json` | `.pi/mcp.json` |
+| Claude Code | `~/.claude.json` | `.mcp.json` |
 
-| Клиент | Файл проекта или worktree |
-|---|---|
-| Pi | `.pi/mcp.json` |
-| Claude Code | `.mcp.json` |
-| Codex | `.codex/config.toml` |
+Общее подключение называется `bsl`.
+Проектная запись с тем же именем задаёт контекст текущей папки.
+В Codex генератор устанавливает абсолютный `cwd`.
+В pi относительный `cwd` разрешается от папки сеанса.
+Claude Code передаёт `CLAUDE_PROJECT_DIR` процессу MCP.
+После изменения настроек проверь фактические корни сервера.
 
-Pi получает через MCP справку платформы, OpenViking, Atlassian и анализатор.
-Память в pi предоставляет плагин `npm:@zosmaai/pi-llm-wiki`.
-Не добавляй `llm-wiki-personal` и `llm-wiki-project` в MCP-настройки pi.
-В Claude Code обе wiki остаются подключёнными через MCP.
-В ЗУП подключаются три анализатора.
-В worktree pi также отключает глобальный RLM через `enabled=false`.
-В СММ добавлен `bsl-smm-live` для HTTP-инструментов dev-базы.
-Он работает при остановленном индексе проекта; правила описаны в [live-1c.md](live-1c.md).
-В Codex общие сервисы наследуются из пользовательских настроек.
+## pi
 
-- СММ: [pi](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/smm_auto/.pi/mcp.json), [Claude Code](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/smm_auto/.mcp.json).
-- КШР: [pi](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/carsh_auto/.pi/mcp.json), [Claude Code](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/carsh_auto/.mcp.json).
-- ЗУП: [pi](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/zup/.pi/mcp.json), [Claude Code](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/zup/.mcp.json).
-- БП: [pi](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/bp/.pi/mcp.json), [Claude Code](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/projects/bp/.mcp.json).
-- DEV1C-33021: [pi](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.pi/mcp.json), [Claude Code](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/worktrees/smm_auto-dev1c-33021-spisanie-tmc/.mcp.json).
+Используй встроенный MCP.
+Для переноса с адаптера используй `scripts/migrate_pi_native.py`.
+Сначала выполни команду без `--apply`.
+Скрипт сохраняет существующие нативные подключения и резервные копии.
+При неизвестных полях или несовместимой авторизации исследуй отказ.
+После применения перезапусти pi.
 
-Команды используют общую установку bsl-analyzer и локальные env-файлы авторизации.
-Кеши разделены по рабочим папкам. Wiki проекта указывает на исходную папку.
-Путь чужой задачи не копируй в новый worktree: передай установщику фактический путь.
+Память предоставляет плагин wiki.
+Не подключай дублирующие MCP персональной и проектной wiki.
+Перед записью проверь фактически выбранный vault.
 
-Для отключения унаследованного RLM в Claude Code недостаточно отсутствия записи в `.mcp.json`.
-В DEV1C-33021 он отключён через `disabledMcpServers` в состоянии этого проекта в `~/.claude.json`.
-Глобальная запись RLM сохраняется для остальных проектов.
-При подготовке нового worktree проверь фактическое наследование серверов каждым клиентом.
-Не переноси поле pi `enabled=false` в файл MCP Claude Code.
-Порядок отключения сервера описан в [документации Claude Code](https://code.claude.com/docs/en/mcp#disable-a-server-without-removing-it).
+Проектная запись сервера обычно заменяет глобальную целиком.
+Для OpenViking генератор использует только `exposure` и `toolExposure`.
+Такая запись сохраняет глобальные URL, заголовки и авторизацию.
+Не заменяй её полным обезличенным подключением.
 
-## Подключение общего навыка
+## Claude Code
 
-Общая установленная папка: `C:\Users\shepa\.agents\skills\av-1c-agentic-sdlc`.
-Codex и pi используют этот каталог навыков.
-Claude Code использует junction
-`C:\Users\shepa\.claude\skills\av-1c-agentic-sdlc`, который указывает на ту же папку.
-Не создавай отдельную изменяемую копию навыка для каждого клиента или worktree.
-Проверяй не только наличие MCP-конфига, но и доступность `SKILL.md` клиенту.
-Навык требует читать `AGENTS.md` текущей папки и применимых родителей.
-Для этого не требуется создавать `CLAUDE.md` в проекте.
+Для HTTP-сервера укажи `type=http`.
+Поля pi `enabled` и `toolExposure` не переноси в `.mcp.json`.
+Отсутствие сервера в проектном файле не отключает глобальное наследование.
+Если сервер нужно отключить для проекта, используй настройки клиента.
+Проверь список через `/mcp`.
 
-Расположение персональных навыков Claude Code описано в
-[официальной документации](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview).
+## Codex
 
-## Перейти с адаптера на встроенный MCP pi
-
-Из `D:\repository\1c_agentic_sdlc` проверь перенос:
-
-```powershell
-python scripts/migrate_pi_native.py
-```
-
-Примени перенос:
-
-```powershell
-python scripts/migrate_pi_native.py --apply
-```
-
-Скрипт переносит подключения из пользовательских файлов адаптера в
-`C:\Users\shepa\.pi\agent\mcp.json`, сохраняя существующие нативные записи.
-Он также добавляет отсутствующие общие профили из `configs/shared/pi/mcp.json`.
-Записи MCP обеих llm-wiki исключаются: в pi их заменяет плагин.
-Существующие подключения и перенесённые адреса имеют приоритет над этими значениями.
-Он сохраняет адреса и заголовки авторизации локально, переводит таймауты из
-миллисекунд в секунды и переносит точные списки инструментов в `toolExposure`.
-Импорты, OAuth, неизвестные параметры и неоднозначные фильтры требуют отдельной сверки:
-в этих случаях скрипт останавливается до изменения настроек.
-
-В пользовательском `settings.json` скрипт убирает `npm:pi-mcp-adapter`
-из `packages`, снимает `-builtin:mcp` и включает `builtin:mcp`.
-Остальные пакеты и настройки сохраняются. Установленный пакет и прежние
-конфиги остаются на диске. Резервные копии находятся вне Git,
-в `C:\Users\shepa\.config\1c-agentic-sdlc\backups`.
-При повторном запуске существующие нативные подключения имеют приоритет.
-
-Перезапусти pi. Встроенный MCP читает только пользовательский `mcp.json`
-и `.pi/mcp.json` доверенного проекта. Старые `.mcp.json`,
-`~/.config/mcp/mcp.json` и `mcp-adapter.json` он не читает.
-Нативный режим не использует авторизацию из хранилища адаптера автоматически.
-
-## Настроить проект или worktree
-
-```powershell
-python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\dev1c-33021-spisanie-tmc --check
-
-# Нативный pi: записать .pi/mcp.json
-python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\dev1c-33021-spisanie-tmc --client pi --apply
-
-# Claude Code: записать .mcp.json
-python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\dev1c-33021-spisanie-tmc --client claude --apply
-
-# Все три клиента; общие профили Codex должны быть уже установлены
-python scripts/configure_mcp.py --workspace D:\repository\1c\worktrees\smm_auto\dev1c-33021-spisanie-tmc --client all --apply
-```
-
-Для обычной ветки передай основную папку проекта.
-`--output <каталог>` формирует файлы всех трёх клиентов без применения.
-Без `--client` сохраняется режим Codex. `--apply-shared` управляет только Codex.
-Pi и Claude Code не требуют глобальных настроек Codex.
-Применение сохраняет посторонние серверы и настройки JSON.
-Неизвестные составы анализаторов требуют сверки до замены.
-
-Проектный файл pi заменяет пользовательский сервер с тем же именем целиком.
-Для OpenViking проектный файл задаёт только `exposure` и `toolExposure`.
-URL и заголовки авторизации наследуются из пользовательского `mcp.json`.
-Без этой записи в пользовательском файле OpenViking не подключится.
-Поэтому готовый проект использует определения из этого репозитория, даже если
-при миграции сохранён другой пользовательский маршрут Atlassian.
-
-Общие определения без проектного анализатора:
-[pi](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/shared/pi/mcp.json) и [Claude Code](https://github.com/highwayman2014/1c_agentic_sdlc/blob/main/mcp/configs/shared/claude/user-mcp.json).
-Это четыре готовых сервиса для объединения с пользовательским `mcpServers`,
-а не замена всей пользовательской конфигурации.
-
-## Поведение и проверка
-
-В pi выбраны `timeout=120` секунд и `exposure="codemode"`.
-Инструменты доступны через встроенный codemode без загрузки всех схем в контекст модели.
-Pi подключает серверы в фоне при запуске сессии. Полей адаптера `lifecycle`
-и `requestTimeoutMs` в нативных файлах нет.
-Broker анализатора сохраняет backend 12 часов после отключения клиентов.
-На Windows обёртка запускает общий `bsl-analyzer-app.exe` для broker.
-Она завершает клиентский процесс при закрытии stdin.
-Это сохраняет backend при закрытии нативного pi.
-Лаунчер остаётся средством обновления общей установки.
-Это не исправляет отказ графа или холодный старт после перезагрузки Windows.
-
-OpenViking ограничен прежним списком инструментов через `toolExposure`.
-Поиск выполняй в `viking://resources/confluence-1c/`.
-Подключение не разрешает импорт материалов или операции в ИБ.
-
-В pi проверь `/mcp` или `pi mcp list` из рабочей папки.
-`pi mcp list` действительно подключает все включённые серверы:
-он может запустить анализатор и его прогрев.
-После изменения файлов в открытой сессии выполни `/reload`.
-После отключения адаптера предпочтителен полный перезапуск pi.
-Доверие к проекту определяется клиентом; эти файлы его не включают автоматически.
-
-В Claude Code проверь `/mcp`. Для OpenViking задан явный `type="http"`.
-Нативные поля pi и Codex в файл Claude Code не попадают.
-После подключения проверь корни, обе wiki и готовность подсистем
-по [общему списку](mcp-setup.md#проверить-подключение).
-
-Источники: [встроенный MCP pi](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/mcp.md),
-[настройки pi](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/settings.md),
-[Claude Code MCP](https://code.claude.com/docs/en/mcp).
+Применяй общие MCP через `--apply-shared` генератора.
+Сохраняй остальные пользовательские настройки и политики инструментов.
+Проектные настройки должны принадлежать текущей рабочей папке.
+Не копируй `cwd` другой задачи в новый worktree.

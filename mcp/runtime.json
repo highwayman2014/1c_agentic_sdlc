@@ -16,5 +16,12 @@
   "onec_connections": "D:\\repository\\1c_agentic_sdlc\\mcp\\onec-connections.json",
   "onec_credential_sources": "D:\\repository\\1c_agentic_sdlc\\mcp\\onec-credential-sources.json",
   "live_source": "C:\\Users\\shepa\\.config\\1c-agentic-sdlc\\runtime\\smm-auto-live",
-  "live_cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\live\\smm-auto-avasilyev"
+  "live_cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\live\\smm-auto-avasilyev",
+  "unified_cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\unified-pilot-smm-043-clean",
+  "broker_current": "C:\\Users\\shepa\\.bsl-analyzer\\bin\\current",
+  "retired_bsl_servers": [
+    "bsl-reference",
+    "bsl-smm-live",
+    "bsl-smm"
+  ]
 }

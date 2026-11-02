@@ -7,10 +7,30 @@ import subprocess
 import sys
 import time
 
-IMAGE = "pgvector/pgvector@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d"
-CONTAINER = "bsl-baseline-postgres"
-VOLUME = "bsl-baseline-pg17"
-PRIVATE = Path("D:/tools/bsl-baseline")
+SETTINGS = json.loads((Path(__file__).resolve().parent.parent / "mcp/baseline-service.json").read_text(encoding="utf-8"))
+IMAGE = SETTINGS["image"]
+CONTAINER = SETTINGS["container"]
+VOLUME = SETTINGS["volume"]
+PRIVATE = Path(SETTINGS["private_directory"])
+HOST = SETTINGS["host"]
+PORT = str(SETTINGS["port"])
+
+
+def schema_grants(schemas):
+    sql = ""
+    for schema in schemas:
+        # Schema names come from configuration; quote both SQL contexts.
+        identifier = '"' + schema.replace('"', '""') + '"'
+        literal = "'" + schema.replace("'", "''") + "'"
+        if "$grant$" in schema:
+            raise RuntimeError("Unsupported schema delimiter")
+        sql += (f"DO $grant$ BEGIN IF EXISTS(SELECT 1 FROM pg_namespace WHERE nspname={literal}) THEN "
+                f"GRANT USAGE ON SCHEMA {identifier} TO bsl_reader; "
+                f"GRANT SELECT ON ALL TABLES IN SCHEMA {identifier} TO bsl_reader; "
+                f"ALTER DEFAULT PRIVILEGES FOR ROLE bsl_admin IN SCHEMA {identifier} GRANT SELECT ON TABLES TO bsl_reader; "
+                "END IF; END $grant$;\n")
+
+    return sql
 
 
 def docker(*args, input=None):
@@ -28,7 +48,7 @@ def inspect():
     if data["Config"]["Image"] != IMAGE:
         raise RuntimeError("Existing container uses a different image")
     bindings = data["HostConfig"]["PortBindings"].get("5432/tcp", [])
-    if bindings != [{"HostIp": "127.0.0.1", "HostPort": "15432"}]:
+    if bindings != [{"HostIp": HOST, "HostPort": PORT}]:
         raise RuntimeError("Existing container uses different port bindings")
     if not any(m.get("Name") == VOLUME and m["Destination"] == "/var/lib/postgresql/data" for m in data["Mounts"]):
         raise RuntimeError("Existing container uses a different data volume")
@@ -43,7 +63,7 @@ def main():
     if not args.apply:
         print(json.dumps({"container": CONTAINER, "exists": existing is not None,
                           "running": bool(existing and existing["State"]["Running"]),
-                          "address": "127.0.0.1:15432", "volume": VOLUME}))
+                          "address": f"{HOST}:{PORT}", "volume": VOLUME}))
         return
     PRIVATE.mkdir(parents=True, exist_ok=True)
     env = PRIVATE / "postgres.env"
@@ -58,7 +78,7 @@ def main():
     if existing is None:
         docker("pull", IMAGE)
         docker("run", "-d", "--name", CONTAINER, "--restart", "unless-stopped", "--env-file", str(env),
-               "-p", "127.0.0.1:15432:5432", "-v", VOLUME + ":/var/lib/postgresql/data", IMAGE)
+               "-p", f"{HOST}:{PORT}:5432", "-v", VOLUME + ":/var/lib/postgresql/data", IMAGE)
     elif not existing["State"]["Running"]:
         docker("start", CONTAINER)
     for attempt in range(30):
@@ -72,12 +92,9 @@ def main():
     sql = ("DO $role$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='bsl_reader') THEN "
            "CREATE ROLE bsl_reader LOGIN PASSWORD '" + password + "'; END IF; END $role$;\n"
            "GRANT CONNECT ON DATABASE bsl_baseline TO bsl_reader;\n"
-           "ALTER ROLE bsl_reader SET default_transaction_read_only=on;\n"
-           "DO $grant$ BEGIN IF EXISTS(SELECT 1 FROM pg_namespace WHERE nspname='smm_auto') THEN "
-           "GRANT USAGE ON SCHEMA smm_auto TO bsl_reader; "
-           "GRANT SELECT ON ALL TABLES IN SCHEMA smm_auto TO bsl_reader; "
-           "ALTER DEFAULT PRIVILEGES FOR ROLE bsl_admin IN SCHEMA smm_auto GRANT SELECT ON TABLES TO bsl_reader; "
-           "END IF; END $grant$;\n")
+           "ALTER ROLE bsl_reader SET default_transaction_read_only=on;\n")
+    sql += schema_grants(SETTINGS["schemas"])
+
     docker("exec", "-i", CONTAINER, "psql", "-U", "bsl_admin", "-d", "bsl_baseline", "-v", "ON_ERROR_STOP=1", input=sql)
     print("Local baseline service ready; source indexes and embedding provider were not used")
 

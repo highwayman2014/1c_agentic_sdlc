@@ -26,7 +26,7 @@ class McpTests(unittest.TestCase):
             "embedding_defaults": {"EMBEDDING_URL": "https://embedding.invalid/api", "EMBEDDING_MODEL": "test", "EMBEDDING_DIM": "1024"},
             "embedding_file": str(self.root / "embedding.env"), "atlassian_file": str(self.root / "atlassian.env"),
         }
-        self.project = {"analyzers": [{"name": "bsl-test", "cache": str(self.root / "main-cache"),
+        self.project = {"unified": False, "analyzers": [{"name": "bsl-test", "cache": str(self.root / "main-cache"),
                          "args": ["mcp", "serve", "--profile", "workspace", "--mode", "broker",
                                   "--source-dir", str(self.source), "--enable-tool", "references",
                                   "--cache-dir", str(self.root / "main-cache")]}]}
@@ -193,11 +193,11 @@ trust_level = "trusted"
         (self.root / "scripts/mcp_profile.py").touch()
         (self.root / "mcp").mkdir()
         (self.root / "mcp/runtime.json").write_text(json.dumps(self.runtime), encoding="utf-8")
-        (self.root / "mcp/projects.json").write_text(json.dumps({"smm_auto": {
+        (self.root / "mcp/projects.json").write_text(json.dumps({"custom-project": {
             **self.project, "source": str(self.source)}}), encoding="utf-8")
         for client, target in [("pi", ".pi/mcp.json"), ("claude", ".mcp.json")]:
             with patch.object(configure_mcp, "REPOSITORY", self.root), patch("builtins.print"), patch.object(sys, "argv", [
-                "configure_mcp.py", "--workspace", str(self.source), "--client", client, "--apply"]):
+                "configure_mcp.py", "--project", "custom-project", "--workspace", str(self.source), "--client", client, "--apply"]):
                 configure_mcp.main()
             data = json.loads((self.source / target).read_text(encoding="utf-8"))
             self.assertEqual(len(data["mcpServers"]), 4 if client == "pi" else 6)

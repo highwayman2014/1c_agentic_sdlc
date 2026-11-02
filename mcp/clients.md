@@ -1,5 +1,5 @@
-# MCP для pi и Claude Code
+# Клиенты MCP
 
-Настройка клиентов описана в навыке
-[av-1c-agentic-sdlc](../.agents/skills/av-1c-agentic-sdlc/SKILL.md).
-Используй раздел настройки MCP этого навыка.
+Подключение `bsl` используется в Codex, pi и Claude Code.
+Установка и проверка описаны в [навыке](../.agents/skills/av-1c-agentic-sdlc/references/mcp-clients.md).
+Параметры проекта задаются конфигами, а не отдельной версией навыка.

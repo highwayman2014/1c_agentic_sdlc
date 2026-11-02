@@ -65,7 +65,7 @@ def build_profiles(project, workspace, source, runtime, repository=REPOSITORY,
     shared["bsl-reference"]["env_vars"] = ["NAPARNIK_TOKEN"]
     local = {}
     is_worktree = workspace.resolve() != source.resolve()
-    for analyzer in project["analyzers"]:
+    for analyzer in ([] if project.get("unified", True) else project.get("analyzers", [])):
         args = list(analyzer["args"])
         args[args.index("--source-dir") + 1] = str(workspace)
         if is_worktree:
@@ -75,7 +75,7 @@ def build_profiles(project, workspace, source, runtime, repository=REPOSITORY,
             cache = Path(analyzer["cache"])
         args[args.index("--cache-dir") + 1] = str(cache)
         name = worktree_server_name(analyzer, workspace) if is_worktree else analyzer["name"]
-        if existing_entries and len(project["analyzers"]) == 1 and len(existing_entries) == 1:
+        if existing_entries and len(project.get("analyzers", [])) == 1 and len(existing_entries) == 1:
             previous_name, previous = next(iter(existing_entries.items()))
             if not analyzer.get("worktree_name"):
                 name = previous_name
@@ -92,6 +92,14 @@ def build_profiles(project, workspace, source, runtime, repository=REPOSITORY,
         local[project["live_server"]] = server(sys.executable, [runner, "bsl-live"], workspace)
     if is_worktree:
         local["rlm-tools-bsl"] = {"url": "http://127.0.0.1:9000/mcp", "enabled": False}
+    if project.get("unified", True):
+        shared.pop("bsl-reference", None)
+        shared["bsl"] = server(sys.executable, [runner, "bsl-unified"], env={})
+        for name in list(local):
+            if name.startswith("bsl-"):
+                del local[name]
+        # Explicit binding also covers Desktop clients whose process cwd differs.
+        local["bsl"] = server(sys.executable, [runner, "bsl-unified"], workspace, env={})
     return shared, local
 
 
@@ -212,7 +220,7 @@ def pi_native(shared, local):
                          if key in {"command", "args", "env", "url", "cwd", "enabled"}}
         entries[name].update(timeout=120, exposure="codemode")
         if "bsl-live" in entry.get("args", []):
-            entries[name]["description"] = "Live dev 1C HTTP tools only. Always set connection=smm-auto-avasilyev. No project code index."
+            entries[name]["description"] = "Live dev 1C HTTP tools only. Select the named connection explicitly. No project code index."
             entries[name]["toolExposure"] = {tool: "codemode" for tool in ["metadata", "query", "execute", "event_log"]}
             entries[name]["toolExposure"]["*"] = "hidden"
         if name == "openviking":
@@ -302,7 +310,7 @@ def import_atlassian_auth(global_text, runtime):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--project", choices=["smm_auto", "carsh_auto", "zup", "bp"])
+    parser.add_argument("--project", help="Project key from mcp/projects.json")
     parser.add_argument("--workspace", type=Path)
     parser.add_argument("--source", type=Path)
     parser.add_argument("--repository", type=Path, default=REPOSITORY)
@@ -315,6 +323,8 @@ def main():
     args = parser.parse_args()
     runtime = json.loads((REPOSITORY / "mcp/runtime.json").read_text(encoding="utf-8"))
     registry = json.loads((REPOSITORY / "mcp/projects.json").read_text(encoding="utf-8"))
+    if args.project and args.project not in registry:
+        raise ValueError("Unknown project key in mcp/projects.json: " + args.project)
     if args.apply and not args.workspace:
         parser.error("--apply requires --workspace")
     if args.apply_shared and args.client not in {"codex", "all"}:
@@ -335,8 +345,7 @@ def main():
         project = registry[args.project]
         source = workspace = Path(project["source"])
     else:
-        project = registry["smm_auto"]
-        source = workspace = Path(project["source"])
+        parser.error("Provide --workspace or --project")
     previous_analyzers = existing_analyzers(workspace)
     shared, local = build_profiles(project, workspace, source, runtime, args.repository,
                                     existing_entries=previous_analyzers)
@@ -354,7 +363,7 @@ def main():
                 raise ValueError("Missing installed component: " + path)
         for entry in local.values():
             arguments = entry.get("args", [])
-            if "workspace" not in arguments:
+            if "workspace" not in arguments and "bsl-unified" not in arguments:
                 continue
             if "--configuration-root" in arguments:
                 if not (workspace / arguments[arguments.index("--configuration-root") + 1] / "Configuration.xml").is_file():
@@ -378,11 +387,13 @@ def main():
         path = Path.home() / ".codex/config.toml"
         old = path.read_text(encoding="utf-8-sig") if path.exists() else ""
         import_atlassian_auth(old, runtime)
-        write_backup(path, merge_servers(old, shared))
+        write_backup(path, merge_servers(old, shared, retire=runtime.get("retired_bsl_servers", []) if project.get("unified", True) else []))
         print("Applied shared MCP profiles; credentials remain outside Git.")
-    origin_names = {entry["name"] for entry in project["analyzers"]}
-    if (len(project["analyzers"]) == 1 and len(previous_analyzers) == 1
-            and project["analyzers"][0].get("worktree_name")):
+    origin_names = {entry["name"] for entry in project.get("analyzers", [])}
+    retired_bsl = {"bsl-reference", project.get("live_server", ""), *origin_names} if project.get("unified", True) else set()
+    retired_bsl.discard("")
+    if (len(project.get("analyzers", [])) == 1 and len(previous_analyzers) == 1
+            and project.get("analyzers", [])[0].get("worktree_name")):
         # Only an unambiguous analyzer already bound to this exact source directory
         # can be retired when the project's explicit naming convention changes.
         origin_names.update(previous_analyzers)
@@ -390,12 +401,12 @@ def main():
     if args.apply and args.client in {"codex", "claude", "all"}:
         path = workspace / ".mcp.json"
         text = path.read_text(encoding="utf-8-sig") if path.exists() else ""
-        pending[path] = merge_json_servers(text, standalone(shared, local)["mcpServers"], origin_names)
+        pending[path] = merge_json_servers(text, standalone(shared, local)["mcpServers"], origin_names, retire=retired_bsl)
     if args.apply and args.client in {"pi", "all"}:
         path = workspace / ".pi/mcp.json"
         text = path.read_text(encoding="utf-8-sig") if path.exists() else ""
         pending[path] = merge_json_servers(text, pi_native(shared, local)["mcpServers"], origin_names,
-                                           retire=PI_WIKI_SERVERS)
+                                           retire=PI_WIKI_SERVERS | retired_bsl)
     if args.apply and args.client in {"codex", "all"}:
         global_path = Path.home() / ".codex/config.toml"
         global_servers = tomllib.loads(global_path.read_text(encoding="utf-8-sig")).get("mcp_servers", {})
@@ -408,7 +419,7 @@ def main():
         unsafe = [name for name in stale if name not in origin_names]
         if unsafe:
             raise ValueError("Review existing analyzer scopes before replacing them: " + ", ".join(unsafe))
-        pending[path] = merge_servers(old, local, retire=[*shared, *stale])
+        pending[path] = merge_servers(old, local, retire=[*shared, *stale, *retired_bsl])
     if args.apply:
         for path, text in pending.items():
             write_backup(path, text)

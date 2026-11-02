@@ -22,7 +22,8 @@
         "worktree_name": "bsl-smm"
       }
     ],
-    "live_server": "bsl-smm-live"
+    "live_server": "bsl-smm-live",
+    "unified": true
   },
   "carsh_auto": {
     "source": "D:\\repository\\1c\\carsh_auto",
@@ -57,7 +58,8 @@
         ],
         "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\carsh-auto"
       }
-    ]
+    ],
+    "unified": false
   },
   "zup": {
     "source": "D:\\repository\\1c\\zup",
@@ -136,7 +138,8 @@
         ],
         "cache": "C:\\Users\\shepa\\AppData\\Local\\bsl-analyzer-cache\\zup-carsh"
       }
-    ]
+    ],
+    "unified": false
   },
   "bp": {
     "source": "D:\\repository\\1c\\bp",
@@ -220,6 +223,7 @@
         ],
         "cache": "D:/bsl-analyzer-cache/bp"
       }
-    ]
+    ],
+    "unified": false
   }
 }
