@@ -8,8 +8,6 @@ use std::{env, fs, error::Error};
 fn run() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 4 { return Err("usage: bsl_baseline_import SQLITE SNAPSHOT PRIVATE_PG_ENV".into()); }
-    let secret = fs::read_to_string(&args[3])?;
-    let password = secret.lines().find_map(|s| s.strip_prefix("POSTGRES_PASSWORD=")).ok_or("missing password")?;
     // This utility writes only the new local PostgreSQL service. Original SQLite includes WAL.
     let db = Connection::open_with_flags(&args[1], OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     db.execute_batch("PRAGMA query_only=ON; BEGIN;")?;
@@ -21,6 +19,16 @@ fn run() -> Result<(), Box<dyn Error>> {
     if sidecar["generation"].as_u64().map(|n|n.to_string()) != Some(generation.clone()) || version != 1 || sidecar["embed_text_version"] != 1 {
         return Err("SQLite / sidecar identity mismatch".into());
     }
+    // The native PG runtime compares context-free source fingerprints. Publishing
+    // enriched SQLite documents would turn unchanged files into expensive overlay.
+    // Do not strip context and relabel old vectors: that changes their actual input.
+    let enriched: i64 = db.query_row("SELECT COUNT(*) FROM chunks c JOIN files f ON f.id=c.file_id WHERE f.collection='code' AND c.graph_context IS NOT NULL", [], |r| r.get(0))?;
+    if enriched > 0 {
+        eprintln!("Refusing enriched legacy import: {enriched} chunks contain graph_context; a canonical input/embedding migration must be approved first. No PostgreSQL writes performed.");
+        return Err("incompatible source fingerprint recipe".into());
+    }
+    let secret = fs::read_to_string(&args[3])?;
+    let password = secret.lines().find_map(|s| s.strip_prefix("POSTGRES_PASSWORD=")).ok_or("missing password")?;
     let config=ExternalBaselineConfig::postgres(format!("host=127.0.0.1 port=15432 dbname=bsl_baseline user=bsl_admin password={password}")).with_schema("smm_auto");
     let adapter=ExternalBaselineAdapter::new(config)?;
     adapter.migrate_storage()?;
