@@ -46,6 +46,7 @@ def configure(runtime, inherited, repository, *, lexical_only=False):
            if not k.startswith(("EMBEDDING_", "BSL_MCP_EFFECTIVE_EMBEDDING_"))}
     source = workspace_from_environment(env)
     provider_settings = {}
+    workspace_application = None
     if source is not None:
         # Parse before reading credentials or starting the executable.
         project_config = tomllib.loads((source / "bsl-analyzer.toml").read_text(encoding="utf-8-sig"))
@@ -55,7 +56,14 @@ def configure(runtime, inherited, repository, *, lexical_only=False):
             available = available_memory_mib()
             if available < minimum:
                 raise ValueError(f'Workspace launch blocked by memory budget: available {available} MiB, required {minimum} MiB. Indexes retained; free memory before reconnecting.')
+        workspace_application = workspace_setting(runtime, 'unified_workspace_applications', source)
+        if workspace_application is not None:
+            if not isinstance(workspace_application, str) or not Path(workspace_application).is_file():
+                raise ValueError('Workspace analyzer application must be an existing local file')
         if mode == "embeddings-enabled" and not lexical_only:
+            request_bytes = workspace_setting(runtime, 'unified_workspace_embedding_max_request_bytes', source)
+            if request_bytes is not None and (type(request_bytes) is not int or request_bytes <= 0):
+                raise ValueError('Workspace embedding request byte budget must be a positive integer')
             validate_embedding_snapshot(source, project_config)
             settings = {**runtime["embedding_defaults"], **runtime.get("unified_embedding_defaults", {}),
                         **read_env(runtime["embedding_file"])}
@@ -63,8 +71,12 @@ def configure(runtime, inherited, repository, *, lexical_only=False):
             if not provider_settings.get("EMBEDDING_API_KEY"):
                 raise ValueError("Approved embedding source has no private provider credential")
             provider_settings.setdefault("EMBEDDING_CONCURRENCY", "1")
+            if request_bytes is not None:
+                provider_settings['EMBEDDING_MAX_REQUEST_BYTES'] = str(request_bytes)
     runtime = dict(runtime)
-    if runtime.get("broker_current"):
+    if workspace_application is not None:
+        runtime['broker_application'] = workspace_application
+    elif runtime.get("broker_current"):
         pointer = Path(runtime["broker_current"])
         name = pointer.read_text(encoding="utf-8").strip()
         if not name.startswith("bsl-analyzer-") or Path(name).name != name or "/" in name or "\\" in name:
