@@ -44,6 +44,80 @@ class UnifiedTests(unittest.TestCase):
             self.assertEqual(env["BSL_ONEC_CONNECTIONS_FILE"], "connections.json")
             gate.assert_called_once()
 
+    def test_explicit_embedding_approval_loads_only_private_provider_settings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'bsl-analyzer.toml').write_text('')
+            runtime = {'embedding_defaults': {'EMBEDDING_MODEL': 'saved-model', 'EMBEDDING_BATCH_SIZE': '128'},
+                       'unified_embedding_defaults': {'EMBEDDING_BATCH_SIZE': '8'},
+                       'embedding_file': 'private.env', 'unified_cache': str(root / 'cache'),
+                       'platform_help': 'absent'}
+            cmd = ['app', '--source-dir', 'empty', '--mode', 'stdio', '--cache-dir', 'cache']
+            with patch('mcp_profile.enforce_baseline_launch_policy', return_value='embeddings-enabled'), \
+                 patch('mcp_profile.read_env', return_value={'EMBEDDING_API_KEY': 'fixture', 'OTHER_SECRET': 'discard'}) as read, \
+                 patch('onec_runtime.configure', side_effect=lambda settings, env: (list(cmd), {k:v for k,v in env.items() if not k.startswith('EMBEDDING_')})):
+                _, env = configure(runtime, {'CLAUDE_PROJECT_DIR': str(root),
+                    'EMBEDDING_MODEL': 'untrusted', 'BSL_MCP_EFFECTIVE_EMBEDDING_MODEL': 'stale'}, root)
+            self.assertEqual(env['EMBEDDING_API_KEY'], 'fixture')
+            self.assertEqual(env['EMBEDDING_MODEL'], 'saved-model')
+            self.assertEqual(env['EMBEDDING_CONCURRENCY'], '1')
+            self.assertEqual(env['EMBEDDING_BATCH_SIZE'], '8')
+            self.assertNotIn('OTHER_SECRET', env)
+            self.assertNotIn('BSL_MCP_EFFECTIVE_EMBEDDING_MODEL', env)
+            read.assert_called_once_with('private.env')
+
+    def test_workspace_request_byte_budget_overrides_provider_default(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'bsl-analyzer.toml').write_text('')
+            runtime = {'embedding_defaults': {}, 'embedding_file': 'private.env',
+                       'unified_cache': str(root / 'cache'), 'platform_help': 'absent',
+                       'unified_workspace_embedding_max_request_bytes': {str(root): 65536}}
+            cmd = ['app', '--source-dir', 'empty', '--mode', 'stdio', '--cache-dir', 'cache']
+            with patch('mcp_profile.enforce_baseline_launch_policy', return_value='embeddings-enabled'), \
+                 patch('mcp_profile.read_env', return_value={'EMBEDDING_API_KEY': 'fixture', 'EMBEDDING_MAX_REQUEST_BYTES': '1048576'}), \
+                 patch('onec_runtime.configure', side_effect=lambda settings, env: (list(cmd), dict(env))):
+                _, env = configure(runtime, {'CLAUDE_PROJECT_DIR': str(root)}, root)
+            self.assertEqual(env['EMBEDDING_MAX_REQUEST_BYTES'], '65536')
+
+    def test_invalid_request_byte_budget_stops_before_credentials(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'bsl-analyzer.toml').write_text('')
+            for value in [0, -1, True, '65536']:
+                runtime = {'unified_workspace_embedding_max_request_bytes': {str(root): value}}
+                with self.subTest(value=value), \
+                     patch('mcp_profile.enforce_baseline_launch_policy', return_value='embeddings-enabled'), \
+                     patch('mcp_profile.read_env') as read:
+                    with self.assertRaisesRegex(ValueError, 'positive integer'):
+                        configure(runtime, {'CLAUDE_PROJECT_DIR': str(root)}, root)
+                    read.assert_not_called()
+
+    def test_approved_source_without_credential_does_not_start_live_configuration(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'bsl-analyzer.toml').write_text('')
+            with patch('mcp_profile.enforce_baseline_launch_policy', return_value='embeddings-enabled'), \
+                 patch('mcp_profile.read_env', return_value={}), patch('onec_runtime.configure') as live:
+                with self.assertRaisesRegex(ValueError, 'no private provider credential'):
+                    configure({'embedding_defaults': {}, 'embedding_file': 'missing'},
+                              {'CLAUDE_PROJECT_DIR': str(root)}, root)
+                live.assert_not_called()
+
+    def test_explicit_lexical_only_disables_even_an_approved_provider(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'bsl-analyzer.toml').write_text('')
+            runtime = {'unified_cache': str(root / 'cache'), 'platform_help': 'absent',
+                       'unified_workspace_embedding_max_request_bytes': {str(root): 65536}}
+            cmd = ['app', '--source-dir', 'empty', '--mode', 'stdio', '--cache-dir', 'cache']
+            with patch('mcp_profile.enforce_baseline_launch_policy', return_value='embeddings-enabled'), \
+                 patch('mcp_profile.read_env') as read, \
+                 patch('onec_runtime.configure', side_effect=lambda settings, env: (list(cmd), dict(env))):
+                _, env = configure(runtime, {'CLAUDE_PROJECT_DIR': str(root)}, root, lexical_only=True)
+            read.assert_not_called()
+            self.assertFalse(any(k.startswith('EMBEDDING_') for k in env))
+
     def test_paused_source_is_rejected_before_credentials_are_read(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -51,6 +125,72 @@ class UnifiedTests(unittest.TestCase):
             with patch("mcp_profile.enforce_baseline_launch_policy", side_effect=ValueError("paused")), patch("onec_runtime.configure") as live:
                 with self.assertRaisesRegex(ValueError, "paused"):
                     configure({}, {"CLAUDE_PROJECT_DIR": str(root)}, root)
+                live.assert_not_called()
+
+    def test_incompatible_shared_snapshot_stops_before_provider_key_read(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);(root/'bsl-analyzer.toml').write_text('[search.baseline]\nbackend="postgres"\n')
+            with patch('mcp_profile.enforce_baseline_launch_policy',return_value='embeddings-enabled'), \
+                 patch('mcp_profile.validate_embedding_snapshot',side_effect=ValueError('incompatible snapshot')), \
+                 patch('mcp_profile.read_env') as read, patch('onec_runtime.configure') as live:
+                with self.assertRaisesRegex(ValueError,'incompatible snapshot'):
+                    configure({}, {'CLAUDE_PROJECT_DIR':str(root)},root)
+                read.assert_not_called();live.assert_not_called()
+
+    def test_low_memory_stops_before_credentials_and_live_setup(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);(root/'bsl-analyzer.toml').write_text('')
+            runtime={'unified_workspace_min_available_mib':{str(root):4096}}
+            with patch('mcp_profile.enforce_baseline_launch_policy',return_value='embeddings-enabled'), \
+                 patch('unified_bsl.available_memory_mib',return_value=512), \
+                 patch('mcp_profile.read_env') as read, patch('onec_runtime.configure') as live:
+                with self.assertRaisesRegex(ValueError,'memory budget'):
+                    configure(runtime,{'CLAUDE_PROJECT_DIR':str(root)},root)
+                read.assert_not_called();live.assert_not_called()
+
+    def test_cache_override_is_exact_source_not_inherited_by_child(self):
+        from unified_bsl import workspace_setting
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp).resolve();runtime={'unified_workspace_caches':{str(root):'isolated'}}
+            self.assertEqual(workspace_setting(runtime,'unified_workspace_caches',root,'default'),'isolated')
+            self.assertEqual(workspace_setting(runtime,'unified_workspace_caches',root/'child','default'),'default')
+
+    def test_workspace_application_is_exact_and_does_not_replace_global_pointer(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            other = root / 'other'
+            other.mkdir()
+            for folder in (root, other):
+                (folder / 'bsl-analyzer.toml').write_text('')
+            app = root / 'private-app'
+            app.write_bytes(b'fixture')
+            pointer = root / 'current'
+            global_app = root / 'bsl-analyzer-original'
+            global_app.write_bytes(b'fixture')
+            pointer.write_text(global_app.name)
+            runtime = {'unified_workspace_applications': {str(root): str(app)},
+                       'broker_current': str(pointer), 'unified_cache': 'cache', 'platform_help': 'absent'}
+            def live(settings, env):
+                return [settings['broker_application'], '--source-dir', 'empty', '--mode', 'stdio', '--cache-dir', 'cache'], env
+            with patch('mcp_profile.enforce_baseline_launch_policy', return_value='lexical-only'), \
+                 patch('onec_runtime.configure', side_effect=live):
+                command, _ = configure(runtime, {'CLAUDE_PROJECT_DIR': str(root)}, root)
+                other_command, _ = configure(runtime, {'CLAUDE_PROJECT_DIR': str(other)}, root)
+            self.assertEqual(command[0], str(app))
+            self.assertEqual(other_command[0], str(global_app))
+            self.assertEqual(pointer.read_text(), global_app.name)
+            self.assertNotIn('broker_application', runtime)
+
+    def test_missing_workspace_application_stops_before_credentials(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            (root / 'bsl-analyzer.toml').write_text('')
+            runtime = {'unified_workspace_applications': {str(root): str(root / 'absent')}}
+            with patch('mcp_profile.enforce_baseline_launch_policy', return_value='embeddings-enabled'), \
+                 patch('mcp_profile.read_env') as read, patch('onec_runtime.configure') as live:
+                with self.assertRaisesRegex(ValueError, 'existing local file'):
+                    configure(runtime, {'CLAUDE_PROJECT_DIR': str(root)}, root)
+                read.assert_not_called()
                 live.assert_not_called()
 
     def test_unified_profile_replaces_reference_workspace_and_live(self):

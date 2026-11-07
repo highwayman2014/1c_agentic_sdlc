@@ -8,7 +8,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from baseline_credentials import PROTOCOL, resolve
 from baseline_service import schema_grants
-from mcp_profile import command_for, enforce_baseline_launch_policy
+from mcp_profile import command_for, enforce_baseline_launch_policy, validate_embedding_snapshot
 
 
 class BaselineTests(unittest.TestCase):
@@ -55,6 +55,21 @@ class BaselineTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "No paid fill"):
                     enforce_baseline_launch_policy([*args[:-1], str(other)], policy)
 
+    def test_embedding_approval_is_exact_and_conflicting_modes_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            main = root / 'main'
+            policy = {'fixture': {'source': str(main), 'worktrees_root': str(root / 'trees'),
+                'workspace_launch': 'paused', 'pause_reason': 'not approved',
+                'embedding_sources': [str(main)]}}
+            args = ['--profile', 'workspace', '--source-dir', str(main)]
+            self.assertEqual(enforce_baseline_launch_policy(args, policy), 'embeddings-enabled')
+            with self.assertRaisesRegex(ValueError, 'not approved'):
+                enforce_baseline_launch_policy([*args[:-1], str(root / 'trees' / 'task')], policy)
+            policy['fixture']['lexical_only_sources'] = [str(main)]
+            with self.assertRaisesRegex(ValueError, 'Conflicting'):
+                enforce_baseline_launch_policy(args, policy)
+
     def test_lexical_policy_removes_inherited_embedding_settings_without_reading_keys(self):
         inherited = {"EMBEDDING_URL": "https://provider.invalid", "EMBEDDING_API_KEY": "fixture",
                      "BSL_MCP_EFFECTIVE_EMBEDDING_QUERY_PREFIX": "frozen", "KEEP": "yes"}
@@ -64,6 +79,28 @@ class BaselineTests(unittest.TestCase):
             self.assertEqual(env, {"KEEP": "yes"})
             self.assertEqual(command[0], "shared.exe")
             read.assert_not_called()
+
+    def test_unified_cli_preserves_explicit_lexical_guard(self):
+        with patch('unified_bsl.configure', return_value=(['app'], {})) as configure:
+            command_for('bsl-unified', [], {}, inherited={}, lexical_only=True)
+            self.assertTrue(configure.call_args.kwargs['lexical_only'])
+
+    def test_known_incompatible_pg_snapshot_is_blocked_without_affecting_sqlite(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);policy={'fixture':{'source':str(root),'worktrees_root':str(root/'trees'),'blocked_embedding_snapshots':['legacy']}}
+            cfg={'search':{'baseline':{'backend':'postgres','workspace_code':{'snapshot_id':'legacy'}}}}
+            with self.assertRaisesRegex(ValueError,'incompatible snapshot'):
+                validate_embedding_snapshot(root,cfg,policy)
+            cfg['search']['baseline']['backend']='sqlite'
+            validate_embedding_snapshot(root,cfg,policy)
+            cfg['search']['baseline'].update(backend='postgres',workspace_code={'snapshot_id':'audited'})
+            validate_embedding_snapshot(root,cfg,policy)
+
+    def test_automatic_shared_selection_needs_audited_explicit_snapshot(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);policy={'fixture':{'source':str(root),'worktrees_root':str(root/'trees'),'blocked_embedding_snapshots':['legacy']}}
+            with self.assertRaisesRegex(ValueError,'explicit audited snapshot'):
+                validate_embedding_snapshot(root,{'search':{'baseline':{'backend':'postgres'}}},policy)
 
     def test_launch_refused_before_reading_provider_credentials(self):
         with patch("mcp_profile.enforce_baseline_launch_policy", side_effect=ValueError("paused")), patch("mcp_profile.read_env") as read:

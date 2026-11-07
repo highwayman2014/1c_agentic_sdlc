@@ -6,7 +6,7 @@
 
 | Файл | Назначение |
 |---|---|
-| `runtime.json` | Общая установка, сервисы, каталог кешей и имена заменяемых серверов |
+| `runtime.json` | Общая установка, каталоги кешей, лимиты ресурсов, сервисы и имена заменяемых серверов |
 | `projects.json` | Ключи проектов, основные рабочие папки и режим профиля |
 | `bsl-analyzer.toml` в проекте | CF, расширения и общий baseline |
 | `baselines.json` | Источники baseline, роль credential helper и политика запуска |
@@ -35,3 +35,4 @@ python scripts/configure_mcp.py --workspace <путь-проекта> --client a
 Проверяй полноту overlay отдельно от готовности сервера.
 Правила: [настройка MCP](../.agents/skills/av-1c-agentic-sdlc/references/mcp.md)
 и [индексы](../.agents/skills/av-1c-agentic-sdlc/references/search-index.md).
+Проверка общей установки и нового worktree: [порядок подключения](../.agents/skills/av-1c-agentic-sdlc/references/mcp-setup.md).

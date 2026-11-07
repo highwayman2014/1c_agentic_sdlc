@@ -47,7 +47,7 @@ def command_for(kind, arguments, runtime, inherited=None, lexical_only=False):
         if arguments:
             raise ValueError("Unified MCP selects sources from the session directory and TOML")
         from unified_bsl import configure
-        return configure(runtime, env, REPOSITORY)
+        return configure(runtime, env, REPOSITORY, lexical_only=lexical_only)
     if kind == "bsl-live":
         if arguments:
             raise ValueError("Live-only MCP uses fixed source and connection settings; extra arguments are not accepted")
@@ -84,7 +84,7 @@ def command_for(kind, arguments, runtime, inherited=None, lexical_only=False):
 
 
 def enforce_baseline_launch_policy(arguments, policies=None):
-    """Return an exact-source lexical override, otherwise enforce the launch gate."""
+    """Return an exact-source embedding/lexical approval, otherwise enforce the gate."""
     if "--profile" not in arguments or arguments[arguments.index("--profile") + 1:][:1] != ["workspace"]:
         return
     if "--source-dir" not in arguments:
@@ -99,10 +99,36 @@ def enforce_baseline_launch_policy(arguments, policies=None):
         main = Path(policy["source"]).resolve()
         worktrees = Path(policy["worktrees_root"]).resolve()
         if source == main or source.is_relative_to(worktrees):
-            if source in {Path(path).resolve() for path in policy.get("lexical_only_sources", [])}:
+            embedding_sources = {Path(path).resolve() for path in policy.get("embedding_sources", [])}
+            lexical_sources = {Path(path).resolve() for path in policy.get("lexical_only_sources", [])}
+            if embedding_sources & lexical_sources:
+                raise ValueError(f"Conflicting embedding/lexical approval for {name}")
+            if source in embedding_sources:
+                return "embeddings-enabled"
+            if source in lexical_sources:
                 return "lexical-only"
             if policy["workspace_launch"] != "enabled":
                 raise ValueError(f"Workspace MCP paused for {name}: {policy['pause_reason']}")
+
+
+def validate_embedding_snapshot(source, config, policies=None):
+    """Reject known incompatible shared snapshots before reading provider secrets."""
+    baseline = config.get('search', {}).get('baseline', {})
+    if baseline.get('backend') != 'postgres': return
+    if policies is None:
+        policies = json.loads((REPOSITORY / 'mcp/baselines.json').read_text(encoding='utf-8'))
+    source = Path(source).resolve()
+    for name, policy in policies.items():
+        if source != Path(policy['source']).resolve() and not source.is_relative_to(Path(policy['worktrees_root']).resolve()):
+            continue
+        blocked = policy.get('blocked_embedding_snapshots', [])
+        if not blocked: return
+        snapshot = baseline.get('workspace_code', {}).get('snapshot_id')
+        if snapshot is None:
+            raise ValueError(f'Paid shared search for {name} requires an explicit audited snapshot; automatic selection is not approved')
+        if snapshot in blocked:
+            raise ValueError(f'Paid overlay disabled for incompatible snapshot {snapshot}: ' + policy.get('embedding_snapshot_block_reason', 'embedding input compatibility audit failed'))
+        return
 
 
 def run_windows_broker(command, env):
