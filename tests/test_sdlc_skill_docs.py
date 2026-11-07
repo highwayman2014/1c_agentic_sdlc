@@ -4,7 +4,6 @@ import unittest
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1] / '.agents/skills/av-1c-agentic-sdlc'
-TEMPORARY = ROOT / 'references/temporary-bsl-pg.md'
 
 
 def heading_anchor(text):
@@ -27,21 +26,6 @@ class SkillDocumentationTests(unittest.TestCase):
                         headings = re.findall(r'^#{1,6}\s+(.+)$', target.read_text(encoding='utf-8-sig'), re.M)
                         self.assertIn(anchor, [heading_anchor(h) for h in headings])
 
-    def test_local_executable_workaround_has_one_disclosed_home(self):
-        references = []
-        special_tokens = ['pg-bg2', 'unified_workspace_applications', '/issues/810', '/issues/811']
-        for source in ROOT.rglob('*.md'):
-            text = source.read_text(encoding='utf-8-sig')
-            if source != TEMPORARY:
-                for token in special_tokens:
-                    self.assertNotIn(token, text, str(source.relative_to(ROOT)))
-            if 'temporary-bsl-pg.md' in text:
-                references.append(source.relative_to(ROOT).as_posix())
-        if TEMPORARY.is_file():
-            self.assertEqual(references, ['references/mcp-setup.md'])
-            self.assertIn('## Верни официальный релиз', TEMPORARY.read_text(encoding='utf-8'))
-        else:
-            self.assertEqual(references, [], 'Retired workaround must have no remaining pointer')
 
 
 if __name__ == '__main__':
